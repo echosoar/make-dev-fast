@@ -10,7 +10,7 @@ export class Git extends CommandBase {
 
   private async getCurrentGitInfo() {
     const info: any = {};
-    info.user = await this.exec(`git config user.name`);
+    info.user = await this.exec(`git config --global user.name`);
     info.email = await this.exec(`git config user.email`);
     info.remoteName = (await this.exec(`git remote`)).split(/\n/)[0];
     info.remoteUrl = await this.exec(`git remote get-url ${info.remoteName}`);
@@ -20,6 +20,7 @@ export class Git extends CommandBase {
     }
     info.currenBranch = (await this.exec(`git branch`)).replace(/^\*\s*/, '');
     this.info = info;
+    console.log('this.info', this.info);
   }
 
   private async subCommand() {
@@ -31,10 +32,15 @@ export class Git extends CommandBase {
   }
 
   private async ad() {
-    await this.exec('git add --all');
+    const result = await this.exec('git add --all');
+    console.log(result);
   }
 
   private async ci() {
+    console.log('this.ctx.options', this.ctx.options);
+    if (this.ctx.options.a) {
+      await this.ad();
+    }
     const type = await (enquirer as any).autocomplete({
       name: 'commitType',
       message: 'Select Commit Type',
@@ -56,16 +62,15 @@ export class Git extends CommandBase {
     const message = await (enquirer as any).input({
       message: 'Please input message',
     });
-    await this.exec(`git commit -m '${type}: ${message}'`);
-    if (this.ctx.options.a) {
-      await this.ad();
-    }
+    const result = await this.exec(`git commit -m '${type}: ${message}'`);
+    console.log(result);
   }
 
   private async ps() {
-    await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
     if (this.ctx.options.a) {
       await this.ci();
     }
+    const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
+    console.log(result);
   }
 }

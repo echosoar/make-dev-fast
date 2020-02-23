@@ -25,7 +25,7 @@ class Git extends commandBase_1.CommandBase {
     getCurrentGitInfo() {
         return __awaiter(this, void 0, void 0, function* () {
             const info = {};
-            info.user = yield this.exec(`git config user.name`);
+            info.user = yield this.exec(`git config --global user.name`);
             info.email = yield this.exec(`git config user.email`);
             info.remoteName = (yield this.exec(`git remote`)).split(/\n/)[0];
             info.remoteUrl = yield this.exec(`git remote get-url ${info.remoteName}`);
@@ -35,6 +35,7 @@ class Git extends commandBase_1.CommandBase {
             }
             info.currenBranch = (yield this.exec(`git branch`)).replace(/^\*\s*/, '');
             this.info = info;
+            console.log('this.info', this.info);
         });
     }
     subCommand() {
@@ -48,11 +49,16 @@ class Git extends commandBase_1.CommandBase {
     }
     ad() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.exec('git add --all');
+            const result = yield this.exec('git add --all');
+            console.log(result);
         });
     }
     ci() {
         return __awaiter(this, void 0, void 0, function* () {
+            console.log('this.ctx.options', this.ctx.options);
+            if (this.ctx.options.a) {
+                yield this.ad();
+            }
             const type = yield enquirer.autocomplete({
                 name: 'commitType',
                 message: 'Select Commit Type',
@@ -74,18 +80,17 @@ class Git extends commandBase_1.CommandBase {
             const message = yield enquirer.input({
                 message: 'Please input message',
             });
-            yield this.exec(`git commit -m '${type}: ${message}'`);
-            if (this.ctx.options.a) {
-                yield this.ad();
-            }
+            const result = yield this.exec(`git commit -m '${type}: ${message}'`);
+            console.log(result);
         });
     }
     ps() {
         return __awaiter(this, void 0, void 0, function* () {
-            yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
             if (this.ctx.options.a) {
                 yield this.ci();
             }
+            const result = yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
+            console.log(result);
         });
     }
 }
