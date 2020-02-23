@@ -55,7 +55,6 @@ class Git extends commandBase_1.CommandBase {
     }
     ci() {
         return __awaiter(this, void 0, void 0, function* () {
-            console.log('this.ctx.options', this.ctx.options);
             if (this.ctx.options.a) {
                 yield this.ad();
             }

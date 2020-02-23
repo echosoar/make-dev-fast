@@ -37,7 +37,6 @@ export class Git extends CommandBase {
   }
 
   private async ci() {
-    console.log('this.ctx.options', this.ctx.options);
     if (this.ctx.options.a) {
       await this.ad();
     }
