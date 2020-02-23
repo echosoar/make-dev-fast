@@ -58,6 +58,11 @@ class Git extends commandBase_1.CommandBase {
             if (this.ctx.options.a) {
                 yield this.ad();
             }
+            const st = yield this.exec(`git status`);
+            if (st.indexOf('nothing to commit') !== -1) {
+                console.log('nothing to commit');
+                process.exit();
+            }
             const type = yield enquirer.autocomplete({
                 name: 'commitType',
                 message: 'Select Commit Type',

@@ -40,7 +40,11 @@ export class Git extends CommandBase {
     if (this.ctx.options.a) {
       await this.ad();
     }
-    console.log(this.st());
+    const st = await this.exec(`git status`);
+    if (st.indexOf('nothing to commit') !== -1) {
+      console.log('nothing to commit');
+      process.exit();
+    }
     const type = await (enquirer as any).autocomplete({
       name: 'commitType',
       message: 'Select Commit Type',
@@ -72,9 +76,5 @@ export class Git extends CommandBase {
     }
     const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
     console.log(result);
-  }
-
-  private async st() {
-    console.log('st');
   }
 }
