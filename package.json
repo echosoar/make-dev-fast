@@ -1,0 +1,31 @@
+{
+  "name": "make-dev-fast",
+  "version": "0.0.1",
+  "description": "make-dev-fast",
+  "main": "./dist/index.js",
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tslint -c tslint.json 'src/**/*.ts' & tsc --build",
+    "test": "jest",
+    "coverage": "jest --coverage",
+    "minify": "uglifyjs --compress --mangle --output index.min.js -- ./dist/index.js"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.3.3",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.0.2",
+    "tslint": "^5.18.0",
+    "typescript": "^3.5.3",
+    "uglify-js": "^3.6.0"
+  },
+  "dependencies": {
+    "enquirer": "^2.3.4",
+    "minimist": "^1.2.0"
+  },
+  "bin": {
+    "dev": "./bin/dev.js",
+    "d": "./bin/dev.js"
+  },
+  "author": "echosoar",
+  "license": "MIT"
+}
