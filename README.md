@@ -41,5 +41,11 @@ You can also use `dev git ps -a` to execute `dev git ad`, `dev git ci` and `dev 
 Equivalent to `git pull origin <current branch name>`
 
 ##### dev git user
+list all git user info
+##### dev git user add
+add new user
+##### dev git user match add <userName> <match>
+add user match
+##### dev git user match remove <userName> <match>
 
 

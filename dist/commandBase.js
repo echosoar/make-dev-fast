@@ -10,10 +10,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const child_process_1 = require("child_process");
+const os_1 = require("os");
+const path_1 = require("path");
+const fs_1 = require("fs");
 class CommandBase {
     constructor(ctx) {
+        this.home = path_1.resolve(os_1.homedir(), '.devFast');
         this.ctx = ctx;
         this.commands = (this.ctx.commands || []).slice(1);
+        this._init();
     }
     main() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -27,16 +32,21 @@ class CommandBase {
             if (!cmd) {
                 return '';
             }
-            return new Promise((resolve, reject) => {
+            return new Promise((resolved, rejected) => {
                 child_process_1.exec(cmd, (err, result) => {
                     if (err) {
                         console.log('err', err);
-                        return reject(err);
+                        return rejected(err);
                     }
-                    resolve(result.replace(/\n$/, '').replace(/^\s*|\s*$/, ''));
+                    resolved(result.replace(/\n$/, '').replace(/^\s*|\s*$/, ''));
                 });
             });
         });
+    }
+    _init() {
+        if (!fs_1.existsSync(this.home)) {
+            fs_1.mkdirSync(this.home);
+        }
     }
 }
 exports.CommandBase = CommandBase;

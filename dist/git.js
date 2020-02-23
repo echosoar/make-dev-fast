@@ -11,7 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const commandBase_1 = require("./commandBase");
 const enquirer = require("enquirer");
+const path_1 = require("path");
+const fs_1 = require("fs");
 class Git extends commandBase_1.CommandBase {
+    constructor() {
+        super(...arguments);
+        this.gitConfigPath = path_1.resolve(this.home, 'gitConfig.json');
+    }
     main() {
         const _super = Object.create(null, {
             main: { get: () => super.main }
@@ -25,27 +31,216 @@ class Git extends commandBase_1.CommandBase {
     getCurrentGitInfo() {
         return __awaiter(this, void 0, void 0, function* () {
             const info = {};
-            info.user = yield this.exec(`git config --global user.name`);
+            info.name = yield this.exec(`git config --global user.name`);
             info.email = yield this.exec(`git config user.email`);
             info.remoteName = (yield this.exec(`git remote`)).split(/\n/)[0];
             info.remoteUrl = yield this.exec(`git remote get-url ${info.remoteName}`);
-            const remoteHostMatch = /git@(.*?):|\/\/(.*?)\//.exec(info.remoteUrl);
-            if (remoteHostMatch) {
-                info.remoteHost = remoteHostMatch[1] || remoteHostMatch[2];
-            }
             info.currenBranch = (yield this.exec(`git branch`)).replace(/^\*\s*/, '');
+            yield this.checkUser(info);
             this.info = info;
             console.log('this.info', this.info);
+        });
+    }
+    checkUser(info) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const gitConfig = this.getGitConfig();
+            if (!gitConfig.user) {
+                gitConfig.user = [];
+            }
+            let user = gitConfig.user.find((userInfo) => {
+                return userInfo.name === info.name && userInfo.email === info.email;
+            });
+            if (!user) {
+                console.log(`${info.name}<${info.email}> not exists!`);
+                const type = yield enquirer.autocomplete({
+                    name: 'matchType',
+                    message: 'Select Doing',
+                    limit: 10,
+                    choices: [
+                        { name: 'add', message: 'Add a new user' },
+                        { name: 'select', message: 'Select a user' },
+                    ],
+                });
+                if (type === 'add') {
+                    user = yield this.userAdd(info);
+                }
+                else {
+                    user = yield this.userSelect(true, info);
+                }
+            }
+            const matches = user.matches.find((match) => {
+                return info.remoteUrl.indexOf(match) !== -1;
+            });
+            if (matches) {
+                return;
+            }
+            console.log(`remote '${info.remoteUrl}' not match any user`);
         });
     }
     subCommand() {
         return __awaiter(this, void 0, void 0, function* () {
             switch (this.commands[0]) {
+                case 'user': return this.user();
+                case 'match': return this.userMatch();
                 case 'ad': return this.ad();
                 case 'ci': return this.ci();
                 case 'ps': return this.ps();
             }
         });
+    }
+    user() {
+        return __awaiter(this, void 0, void 0, function* () {
+            switch (this.commands[1]) {
+                case 'add':
+                    return this.userAdd();
+            }
+            const gitConfig = this.getGitConfig();
+            if (!gitConfig.user) {
+                console.log('not set git user');
+                return;
+            }
+            gitConfig.user.forEach((userInfo) => {
+                console.log(`${userInfo.name}<${userInfo.email}>`);
+                if (userInfo.matches && userInfo.matches.length) {
+                    userInfo.matches.forEach((match) => {
+                        console.log(`  - ${match}`);
+                    });
+                }
+            });
+        });
+    }
+    userAdd(info) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const name = yield enquirer.input({
+                message: 'Please input name',
+                initial: info && info.name || '',
+            });
+            const email = yield enquirer.input({
+                message: 'Please input email',
+                initial: info && info.email || '',
+            });
+            const gitConfig = this.getGitConfig();
+            if (!gitConfig.user) {
+                gitConfig.user = [];
+            }
+            const userExists = gitConfig.user.find((user) => {
+                return user.name === name && user.email === email;
+            });
+            if (userExists) {
+                console.error(`${name}<${email}> exists!`);
+                return;
+            }
+            const newUserInfo = { name, email, matches: [] };
+            gitConfig.user.push(newUserInfo);
+            this.setGitConfig(gitConfig);
+            console.log(`Add ${name}<${email}> success!`);
+            return newUserInfo;
+        });
+    }
+    userMatch() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let type = this.commands[2];
+            if (type !== 'add' && type !== 'remove' && type !== 'list') {
+                type = yield enquirer.autocomplete({
+                    name: 'matchType',
+                    message: 'Select Doing',
+                    limit: 10,
+                    choices: [
+                        { name: 'add', message: 'Add a new match to user' },
+                        { name: 'remove', message: 'Remove match from user' },
+                        { name: 'list', message: 'List user matches' },
+                    ],
+                });
+            }
+            const user = yield this.userSelect(true);
+            if (!user.matches) {
+                user.matches = [];
+            }
+            switch (type) {
+                case 'add':
+                    const matchUrl = yield enquirer.input({
+                        message: 'Please input match url',
+                    });
+                    const exists = user.matches.find((match) => match === matchUrl);
+                    if (exists) {
+                        console.log(`'${matchUrl}' existed!`);
+                        return;
+                    }
+                    user.matches.push(matchUrl);
+                    break;
+                case 'remove':
+                    if (!user.matches.length) {
+                        console.log('no match');
+                        return;
+                    }
+                    const removeMatch = yield enquirer.autocomplete({
+                        name: 'removeMatch',
+                        message: 'Select which match will remove',
+                        limit: 10,
+                        choices: user.matches,
+                    });
+                    user.matches = user.matches.filter((match) => match === removeMatch);
+                    console.log(`${removeMatch} removed!`);
+                case 'list':
+                    console.log(`${user.name}<${user.email}>`);
+                    if (user.matches && user.matches.length) {
+                        user.matches.forEach((match) => {
+                            console.log(`  - ${match}`);
+                        });
+                    }
+                    else {
+                        console.log(`  no match`);
+                    }
+                    return;
+            }
+            const gitConfig = this.getGitConfig();
+            const index = gitConfig.user.findIndex((userInfo) => {
+                return userInfo.name === user.name && userInfo.email === user.email;
+            });
+            console.log('index', index);
+            gitConfig.user[index] = user;
+            this.setGitConfig(gitConfig);
+        });
+    }
+    userSelect(autoAddNewUser, autoAddNewUserInfo) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const gitConfig = this.getGitConfig();
+            if (!gitConfig || !gitConfig.user || !gitConfig.user.length) {
+                console.log(`no user, please add a new user`);
+                if (autoAddNewUser) {
+                    return this.userAdd(autoAddNewUserInfo);
+                }
+                return;
+            }
+            const userSelect = yield enquirer.autocomplete({
+                name: 'user',
+                message: 'Select Git User',
+                limit: 10,
+                choices: gitConfig.user.map((userInfo) => {
+                    return `${userInfo.name}<${userInfo.email}>`;
+                }),
+            });
+            const userDetail = /^(.*?)<(.*?)>$/.exec(userSelect);
+            return gitConfig.user.find((user) => {
+                return user.name === userDetail[1] && user.email === userDetail[2];
+            });
+        });
+    }
+    getGitConfig() {
+        if (this.gitConfig) {
+            return this.gitConfig;
+        }
+        if (fs_1.existsSync(this.gitConfigPath)) {
+            this.gitConfig = JSON.parse(fs_1.readFileSync(this.gitConfigPath).toString());
+        }
+        else {
+            this.gitConfig = {};
+        }
+        return this.gitConfig;
+    }
+    setGitConfig(gitConfig) {
+        this.gitConfig = gitConfig;
+        fs_1.writeFileSync(this.gitConfigPath, JSON.stringify(gitConfig));
     }
     ad() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -60,7 +255,7 @@ class Git extends commandBase_1.CommandBase {
             }
             const st = yield this.exec(`git status`);
             if (st.indexOf('nothing to commit') !== -1) {
-                console.log('nothing to commit');
+                console.error('nothing to commit');
                 process.exit();
             }
             const type = yield enquirer.autocomplete({
