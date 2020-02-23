@@ -55,7 +55,7 @@ class Git extends commandBase_1.CommandBase {
     }
     ci() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.ctx.options.a) {
+            if (!this.ctx.options.s) {
                 yield this.ad();
             }
             const st = yield this.exec(`git status`);
@@ -90,11 +90,11 @@ class Git extends commandBase_1.CommandBase {
     }
     ps() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (this.ctx.options.a) {
+            if (!this.ctx.options.s) {
                 yield this.ci();
             }
             const result = yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
-            console.log(result);
+            console.log(result || 'Push success!');
         });
     }
 }

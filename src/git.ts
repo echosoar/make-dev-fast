@@ -37,7 +37,7 @@ export class Git extends CommandBase {
   }
 
   private async ci() {
-    if (this.ctx.options.a) {
+    if (!this.ctx.options.s) {
       await this.ad();
     }
     const st = await this.exec(`git status`);
@@ -71,10 +71,10 @@ export class Git extends CommandBase {
   }
 
   private async ps() {
-    if (this.ctx.options.a) {
+    if (!this.ctx.options.s) {
       await this.ci();
     }
     const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
-    console.log(result);
+    console.log(result || 'Push success!');
   }
 }
