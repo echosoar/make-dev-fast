@@ -40,6 +40,7 @@ export class Git extends CommandBase {
     if (this.ctx.options.a) {
       await this.ad();
     }
+    console.log(this.st());
     const type = await (enquirer as any).autocomplete({
       name: 'commitType',
       message: 'Select Commit Type',
@@ -71,5 +72,9 @@ export class Git extends CommandBase {
     }
     const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
     console.log(result);
+  }
+
+  private async st() {
+    console.log('st');
   }
 }
