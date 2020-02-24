@@ -87,6 +87,7 @@ class Git extends commandBase_1.CommandBase {
                 case 'ad': return this.ad();
                 case 'ci': return this.ci();
                 case 'ps': return this.ps();
+                case 'pl': return this.pl();
             }
         });
     }
@@ -312,6 +313,13 @@ class Git extends commandBase_1.CommandBase {
             }
             const result = yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
             console.log(result || 'Push success!');
+        });
+    }
+    pl() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkUser();
+            const result = yield this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
+            console.log(result || 'Pull success!');
         });
     }
 }

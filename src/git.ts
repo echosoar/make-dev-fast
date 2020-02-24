@@ -72,6 +72,7 @@ export class Git extends CommandBase {
       case 'ad': return this.ad();
       case 'ci': return this.ci();
       case 'ps': return this.ps();
+      case 'pl': return this.pl();
     }
   }
 
@@ -288,5 +289,11 @@ export class Git extends CommandBase {
     }
     const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
     console.log(result || 'Push success!');
+  }
+
+  private async pl() {
+    await this.checkUser();
+    const result = await this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
+    console.log(result || 'Pull success!');
   }
 }

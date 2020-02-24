@@ -16,4 +16,5 @@ export declare class Git extends CommandBase {
     private ad;
     private ci;
     private ps;
+    private pl;
 }
