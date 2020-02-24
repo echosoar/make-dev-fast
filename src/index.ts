@@ -16,7 +16,7 @@ class MDF {
 
     this.git = new Git(this);
     this.npm = new Npm(this);
-    this.main();
+    this.main().catch(e => {});
   }
 
   private async main() {

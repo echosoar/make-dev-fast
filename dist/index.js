@@ -20,7 +20,7 @@ class MDF {
         this.commands = this.options._ || [];
         this.git = new git_1.Git(this);
         this.npm = new npm_1.Npm(this);
-        this.main();
+        this.main().catch(e => { });
     }
     main() {
         return __awaiter(this, void 0, void 0, function* () {
