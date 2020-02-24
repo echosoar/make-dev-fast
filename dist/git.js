@@ -36,7 +36,7 @@ class Git extends commandBase_1.CommandBase {
                 info.email = yield this.exec(`git config user.email`);
                 info.remoteName = (yield this.exec(`git remote`)).split(/\n/)[0];
                 info.remoteUrl = yield this.exec(`git remote get-url ${info.remoteName}`);
-                info.currenBranch = (yield this.exec(`git branch`)).replace(/^\*\s*/, '');
+                info.currenBranch = (yield this.exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
             }
             catch (e) { }
             finally {

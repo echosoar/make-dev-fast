@@ -20,7 +20,7 @@ export class Git extends CommandBase {
       info.email = await this.exec(`git config user.email`);
       info.remoteName = (await this.exec(`git remote`)).split(/\n/)[0];
       info.remoteUrl = await this.exec(`git remote get-url ${info.remoteName}`);
-      info.currenBranch = (await this.exec(`git branch`)).replace(/^\*\s*/, '');
+      info.currenBranch = (await this.exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
     } catch (e) { } finally {
       this.info = info;
     }
