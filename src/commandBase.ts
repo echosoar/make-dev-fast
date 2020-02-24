@@ -26,7 +26,6 @@ export class CommandBase {
     return new Promise((resolved, rejected) => {
       exec(cmd, (err, result) => {
         if (err) {
-          console.log('err', err);
           return rejected(err);
         }
         resolved(result.replace(/\n$/, '').replace(/^\s*|\s*$/, ''));
