@@ -1,4 +1,5 @@
 import * as minimist from 'minimist';
+import * as configstore from 'configstore';
 import * as enquirer from 'enquirer';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
@@ -9,14 +10,19 @@ class MDF {
   public commands: string[];
   private git: any;
   private npm: any;
+  private config: any;
 
   constructor(argv) {
     this.options = minimist(argv.slice(2));
     this.commands = this.options._ || [];
-
+    this.config = new configstore('make-dev-fast');
     this.git = new Git(this);
     this.npm = new Npm(this);
-    this.main().catch(e => {});
+    this.main().catch((e) => {});
+  }
+
+  public getStore(key) {
+    return this.config.get(key);
   }
 
   private async main() {

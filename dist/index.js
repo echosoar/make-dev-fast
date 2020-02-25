@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 const minimist = require("minimist");
+const configstore = require("configstore");
 const enquirer = require("enquirer");
 const path_1 = require("path");
 const fs_1 = require("fs");
@@ -18,9 +19,13 @@ class MDF {
     constructor(argv) {
         this.options = minimist(argv.slice(2));
         this.commands = this.options._ || [];
+        this.config = new configstore('make-dev-fast');
         this.git = new git_1.Git(this);
         this.npm = new npm_1.Npm(this);
-        this.main().catch(e => { });
+        this.main().catch((e) => { });
+    }
+    getStore(key) {
+        return this.config.get(key);
     }
     main() {
         return __awaiter(this, void 0, void 0, function* () {

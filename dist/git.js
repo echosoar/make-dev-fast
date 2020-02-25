@@ -11,13 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const commandBase_1 = require("./commandBase");
 const enquirer = require("enquirer");
-const path_1 = require("path");
-const fs_1 = require("fs");
 class Git extends commandBase_1.CommandBase {
-    constructor() {
-        super(...arguments);
-        this.gitConfigPath = path_1.resolve(this.home, 'gitConfig.json');
-    }
     main() {
         const _super = Object.create(null, {
             main: { get: () => super.main }
@@ -241,22 +235,12 @@ class Git extends commandBase_1.CommandBase {
         if (this.gitConfig) {
             return this.gitConfig;
         }
-        if (fs_1.existsSync(this.gitConfigPath)) {
-            try {
-                this.gitConfig = JSON.parse(fs_1.readFileSync(this.gitConfigPath).toString());
-            }
-            catch (e) {
-                this.gitConfig = {};
-            }
-        }
-        else {
-            this.gitConfig = {};
-        }
+        this.gitConfig = this.ctx.config.get('gitConfig') || {};
         return this.gitConfig;
     }
     setGitConfig(gitConfig) {
         this.gitConfig = gitConfig;
-        fs_1.writeFileSync(this.gitConfigPath, JSON.stringify(gitConfig));
+        this.ctx.config.set('gitConfig', gitConfig);
     }
     ad() {
         return __awaiter(this, void 0, void 0, function* () {

@@ -1,11 +1,8 @@
 import { CommandBase } from './commandBase';
 import * as enquirer from 'enquirer';
-import { resolve } from 'path';
-import { existsSync, writeFileSync, readFileSync } from 'fs';
 import { IGitConfig, IUser } from './git.interface';
 export class Git extends CommandBase {
   private info: any;
-  private gitConfigPath: string = resolve(this.home, 'gitConfig.json');
   private gitConfig: any;
   protected async main() {
     await super.main();
@@ -222,21 +219,13 @@ export class Git extends CommandBase {
     if (this.gitConfig) {
       return this.gitConfig;
     }
-    if (existsSync(this.gitConfigPath)) {
-      try {
-        this.gitConfig = JSON.parse(readFileSync(this.gitConfigPath).toString());
-      } catch (e) {
-        this.gitConfig = {};
-      }
-    } else {
-      this.gitConfig = {};
-    }
+    this.gitConfig = this.ctx.config.get('gitConfig') || {};
     return this.gitConfig;
   }
 
   private setGitConfig(gitConfig) {
     this.gitConfig = gitConfig;
-    writeFileSync(this.gitConfigPath, JSON.stringify(gitConfig));
+    this.ctx.config.set('gitConfig', gitConfig);
   }
 
   private async ad() {

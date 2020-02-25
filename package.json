@@ -19,10 +19,14 @@
     "uglify-js": "^3.6.0"
   },
   "dependencies": {
+    "configstore": "^5.0.1",
     "enquirer": "^2.3.4",
     "minimist": "^1.2.0"
   },
-  "files": ["bin", "dist"],
+  "files": [
+    "bin",
+    "dist"
+  ],
   "bin": {
     "dev": "./bin/dev.js",
     "d": "./bin/dev.js"

@@ -1,7 +1,6 @@
 import { CommandBase } from './commandBase';
 export declare class Git extends CommandBase {
     private info;
-    private gitConfigPath;
     private gitConfig;
     protected main(): Promise<void>;
     private getCurrentGitInfo;
