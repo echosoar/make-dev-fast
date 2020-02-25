@@ -6,6 +6,7 @@ export declare class Git extends CommandBase {
     private getCurrentGitInfo;
     private checkUser;
     private subCommand;
+    private displayGitInfo;
     private user;
     private userAdd;
     private userMatch;

@@ -16,7 +16,12 @@ export class Git extends CommandBase {
       info.name = await this.exec(`git config --global user.name`);
       info.email = await this.exec(`git config user.email`);
       info.remoteName = (await this.exec(`git remote`)).split(/\n/)[0];
-      info.remoteUrl = await this.exec(`git remote get-url ${info.remoteName}`);
+      info.remoteGitUrl = await this.exec(`git remote get-url ${info.remoteName}`);
+      if (/^git@/i.test(info.remoteGitUrl)) {
+        info.remoteUrl = info.remoteGitUrl.replace(':', '/').replace('git@', 'https://').replace(/\.git$/, '');
+      } else {
+        info.remoteUrl = info.remoteGitUrl.replace(/\.git$/, '');
+      }
       info.currenBranch = (await this.exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
     } catch (e) { } finally {
       this.info = info;
@@ -43,15 +48,15 @@ export class Git extends CommandBase {
       user = await this.userSelect(true, info);
     }
     const matches = user.matches.find((match: string) => {
-      return info.remoteUrl.indexOf(match) !== -1;
+      return info.remoteGitUrl.indexOf(match) !== -1;
     });
 
     if (matches) {
       return;
     }
 
-    console.log(`[Dev] The remote link '${info.remoteUrl}' cannot match the user.`);
-    const newUser = await this.userMatch('add', info.remoteUrl);
+    console.log(`[Dev] The remote link '${info.remoteGitUrl}' cannot match the user.`);
+    const newUser = await this.userMatch('add', info.remoteGitUrl);
     if (newUser.name !== info.name) {
       this.info.name = newUser.name;
       await this.exec(`git config user.name '${newUser.name}'`);
@@ -64,6 +69,7 @@ export class Git extends CommandBase {
 
   private async subCommand() {
     switch (this.commands[0]) {
+      case 'info': return this.displayGitInfo();
       case 'user': return this.user();
       case 'match': return this.userMatch();
       case 'ad': return this.ad();
@@ -71,6 +77,12 @@ export class Git extends CommandBase {
       case 'ps': return this.ps();
       case 'pl': return this.pl();
     }
+  }
+
+  private displayGitInfo() {
+    Object.keys(this.info).forEach((info: string) => {
+      console.log(`${(info.replace(/([A-Z])/g, ' $1').replace(/^(.)/, (match: string) => match.toUpperCase()) + ':').padEnd(20)}${this.info[info]}`);
+    });
   }
 
   private async user() {
