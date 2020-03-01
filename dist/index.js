@@ -30,7 +30,7 @@ class MDF {
     }
     main() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.commands || !this.commands.length) {
+            if (!this.commands || !this.commands.length || this.commands[0] === 'run') {
                 yield this.cmd.execute();
                 return;
             }

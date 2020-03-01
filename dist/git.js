@@ -26,7 +26,7 @@ class Git extends commandBase_1.CommandBase {
         return __awaiter(this, void 0, void 0, function* () {
             const info = {};
             try {
-                info.name = yield this.exec(`git config --global user.name`);
+                info.name = yield this.exec(`git config user.name`);
                 info.email = yield this.exec(`git config user.email`);
                 info.remoteName = (yield this.exec(`git remote`)).split(/\n/)[0];
                 info.remoteGitUrl = yield this.exec(`git remote get-url ${info.remoteName}`);

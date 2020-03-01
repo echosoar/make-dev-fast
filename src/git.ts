@@ -13,7 +13,7 @@ export class Git extends CommandBase {
   private async getCurrentGitInfo() {
     const info: any = {};
     try {
-      info.name = await this.exec(`git config --global user.name`);
+      info.name = await this.exec(`git config user.name`);
       info.email = await this.exec(`git config user.email`);
       info.remoteName = (await this.exec(`git remote`)).split(/\n/)[0];
       info.remoteGitUrl = await this.exec(`git remote get-url ${info.remoteName}`);

@@ -13,37 +13,69 @@ const commandBase_1 = require("./commandBase");
 const path_1 = require("path");
 const fs_1 = require("fs");
 const enquirer = require("enquirer");
+const ora = require("ora");
 class Cmd extends commandBase_1.CommandBase {
     execute() {
         return __awaiter(this, void 0, void 0, function* () {
+            const start = Date.now();
             const typeCmd = yield this.checkType();
             const cmdCount = this.getCmdCount();
-            let commands = [];
-            if (typeCmd && typeCmd.client.getCommands) {
-                commands = typeCmd.client.getCommands().map((cmd) => {
-                    return `${typeCmd.type}: ${cmd}`;
-                }).sort((cmdA, cmdB) => {
-                    return (cmdCount[cmdB] || 0) - (cmdCount[cmdA] || 0);
+            const commandList = [];
+            if (typeCmd && typeCmd.client && typeCmd.client.getCommands) {
+                typeCmd.client.getCommands().forEach((commandName) => {
+                    const title = `${typeCmd.type}: ${commandName}`;
+                    commandList.push({
+                        title,
+                        command: commandName,
+                        type: typeCmd.type,
+                        count: cmdCount[title] || 0,
+                    });
                 });
             }
-            if (commands && commands.length) {
-                const command = yield enquirer.autocomplete({
+            if (!commandList.length) {
+                console.log(`[dev] no command to execute!`);
+                return;
+            }
+            let command = '';
+            if (this.commands[0]) {
+                command = `${typeCmd.type}: ${this.commands[0]}`;
+            }
+            else {
+                command = yield enquirer.autocomplete({
                     name: 'command',
                     message: 'Select Command',
                     limit: 10,
-                    choices: commands,
+                    choices: commandList.sort((a, b) => {
+                        return b.count - a.count;
+                    }).map((cmd) => cmd.title),
                 });
-                if (!cmdCount[command]) {
-                    cmdCount[command] = 0;
-                }
-                cmdCount[command]++;
-                this.setCmdCount(cmdCount);
-                const commandValue = command.split(': ')[1];
-                if (typeCmd.client && typeCmd.client.execute) {
-                    yield typeCmd.client.execute(commandValue);
-                }
-                console.log(`[dev] command '${command}' execute succeed!`);
             }
+            const commandItem = commandList.find((cmd) => (cmd.title === command));
+            if (!commandItem) {
+                console.log(`[dev] command '${commandItem.command}' not found!`);
+                return;
+            }
+            if (!cmdCount[command]) {
+                cmdCount[command] = 0;
+            }
+            cmdCount[command]++;
+            this.setCmdCount(cmdCount);
+            const spinner = ora(' executing...').start();
+            try {
+                if (typeCmd.type === commandItem.type) {
+                    yield typeCmd.client.execute(commandItem.command);
+                }
+            }
+            catch (e) {
+                spinner.stop();
+                console.error(`[dev] '${commandItem.command}' error, message:`);
+                console.error();
+                console.error(e.message);
+                console.error(e.trace);
+                return;
+            }
+            spinner.stop();
+            console.log(`[dev] '${commandItem.command}' succeed! (${Number((Date.now() - start) / 1000).toFixed(2)}s, ${cmdCount[command]}times)`);
         });
     }
     checkType() {

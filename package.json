@@ -1,6 +1,6 @@
 {
   "name": "make-dev-fast",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "description": "make-dev-fast",
   "main": "./dist/index.js",
   "scripts": {
@@ -21,7 +21,8 @@
   "dependencies": {
     "configstore": "^5.0.1",
     "enquirer": "^2.3.4",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "ora": "^4.0.3"
   },
   "files": [
     "bin",

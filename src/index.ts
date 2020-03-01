@@ -27,7 +27,7 @@ class MDF {
   }
 
   private async main() {
-    if (!this.commands || !this.commands.length) {
+    if (!this.commands || !this.commands.length || this.commands[0] === 'run') {
       await this.cmd.execute();
       return;
     }
