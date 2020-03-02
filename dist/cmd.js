@@ -32,6 +32,18 @@ class Cmd extends commandBase_1.CommandBase {
                     });
                 });
             }
+            const userCommand = this.ctx.cmdManager.getCommandList();
+            if (userCommand && userCommand.length) {
+                userCommand.forEach((userCmd) => {
+                    const title = `user: ${userCmd.title}`;
+                    commandList.push({
+                        title,
+                        command: userCmd.cmd,
+                        type: 'user',
+                        count: cmdCount[title] || 0,
+                    });
+                });
+            }
             if (!commandList.length) {
                 console.log(`[dev] no command to execute!`);
                 return;
@@ -64,6 +76,9 @@ class Cmd extends commandBase_1.CommandBase {
             try {
                 if (typeCmd.type === commandItem.type) {
                     yield typeCmd.client.execute(commandItem.command);
+                }
+                else if (commandItem.type === 'user') {
+                    yield this.exec(commandItem.command);
                 }
             }
             catch (e) {

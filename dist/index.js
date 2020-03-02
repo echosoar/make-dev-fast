@@ -13,6 +13,7 @@ const configstore = require("configstore");
 const git_1 = require("./git");
 const npm_1 = require("./npm");
 const cmd_1 = require("./cmd");
+const cmdManager_1 = require("./cmdManager");
 class MDF {
     constructor(argv) {
         this.options = minimist(argv.slice(2));
@@ -23,6 +24,7 @@ class MDF {
         });
         this.git = new git_1.Git(this);
         this.cmd = new cmd_1.Cmd(this);
+        this.cmdManager = new cmdManager_1.CmdManager(this);
         this.main().catch((e) => { });
     }
     getStore(key) {
@@ -36,7 +38,10 @@ class MDF {
             }
             switch (this.commands[0]) {
                 case 'git':
+                case 'g':
                     return this.git.main();
+                case 'command':
+                    return this.cmdManager.main();
             }
         });
     }

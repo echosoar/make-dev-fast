@@ -3,12 +3,14 @@ import * as configstore from 'configstore';
 import { Git } from './git';
 import { Npm } from './npm';
 import { Cmd } from './cmd';
+import { CmdManager } from './cmdManager';
 class MDF {
   public options: any;
   public commands: string[];
   private git: any;
   private cmd: any;
   private config: any;
+  private cmdManager: any;
 
   constructor(argv) {
     this.options = minimist(argv.slice(2));
@@ -19,6 +21,7 @@ class MDF {
     });
     this.git = new Git(this);
     this.cmd = new Cmd(this);
+    this.cmdManager = new CmdManager(this);
     this.main().catch((e) => {});
   }
 
@@ -33,7 +36,10 @@ class MDF {
     }
     switch (this.commands[0]) {
       case 'git':
+      case 'g':
         return this.git.main();
+      case 'command':
+        return this.cmdManager.main();
     }
   }
 }

@@ -1,6 +1,7 @@
 import { CommandBase } from './commandBase';
 import * as enquirer from 'enquirer';
 import { IGitConfig, IUser } from './git.interface';
+import * as ora from 'ora';
 export class Git extends CommandBase {
   private info: any;
   private gitConfig: any;
@@ -69,6 +70,7 @@ export class Git extends CommandBase {
 
   private async subCommand() {
     switch (this.commands[0]) {
+      case 'i': return this.displayGitInfo();
       case 'info': return this.displayGitInfo();
       case 'user': return this.user();
       case 'match': return this.userMatch();
@@ -278,7 +280,9 @@ export class Git extends CommandBase {
     const message = await (enquirer as any).input({
       message: 'Please input commit message',
     });
+    const spinner = ora(' commit...').start();
     const result = await this.exec(`git commit -m '${type}: ${message}'`);
+    spinner.stop();
     console.log(result);
   }
 
@@ -288,13 +292,17 @@ export class Git extends CommandBase {
     } else {
       await this.checkUser();
     }
+    const spinner = ora(' pushing...').start();
     const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
+    spinner.stop();
     console.log(result || 'Push success!');
   }
 
   private async pl() {
     await this.checkUser();
+    const spinner = ora(' pulling...').start();
     const result = await this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
+    spinner.stop();
     console.log(result || 'Pull success!');
   }
 }

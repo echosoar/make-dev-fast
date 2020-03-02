@@ -11,6 +11,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 const commandBase_1 = require("./commandBase");
 const enquirer = require("enquirer");
+const ora = require("ora");
 class Git extends commandBase_1.CommandBase {
     main() {
         const _super = Object.create(null, {
@@ -82,6 +83,7 @@ class Git extends commandBase_1.CommandBase {
     subCommand() {
         return __awaiter(this, void 0, void 0, function* () {
             switch (this.commands[0]) {
+                case 'i': return this.displayGitInfo();
                 case 'info': return this.displayGitInfo();
                 case 'user': return this.user();
                 case 'match': return this.userMatch();
@@ -295,7 +297,9 @@ class Git extends commandBase_1.CommandBase {
             const message = yield enquirer.input({
                 message: 'Please input commit message',
             });
+            const spinner = ora(' commit...').start();
             const result = yield this.exec(`git commit -m '${type}: ${message}'`);
+            spinner.stop();
             console.log(result);
         });
     }
@@ -307,14 +311,18 @@ class Git extends commandBase_1.CommandBase {
             else {
                 yield this.checkUser();
             }
+            const spinner = ora(' pushing...').start();
             const result = yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
+            spinner.stop();
             console.log(result || 'Push success!');
         });
     }
     pl() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkUser();
+            const spinner = ora(' pulling...').start();
             const result = yield this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
+            spinner.stop();
             console.log(result || 'Pull success!');
         });
     }

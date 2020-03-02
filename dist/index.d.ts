@@ -4,6 +4,7 @@ declare class MDF {
     private git;
     private cmd;
     private config;
+    private cmdManager;
     constructor(argv: any);
     getStore(key: any): any;
     private main;

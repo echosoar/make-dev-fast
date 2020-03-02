@@ -60,8 +60,3 @@ List all matching rules for a user
 #### dev command add
 #### dev command list
 #### dev command remove
-
-用户自定义命令
-
-ora
-输出原始输出
