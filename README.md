@@ -1,7 +1,14 @@
-# make-dev-fast
-Make development faster
+<center>
+<b>make-dev-fast<b>
+
+make development faster
 
 [![npm](https://img.shields.io/npm/v/make-dev-fast.svg?style=flat)](https://www.npmjs.org/package/make-dev-fast)
+<br />
+
+![usage](./docs/usage.gif)
+
+</center>
 
 ## Usage
 
