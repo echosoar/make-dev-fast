@@ -1,6 +1,8 @@
 # make-dev-fast
 Make development faster
 
+[![npm](https://img.shields.io/npm/v/make-dev-fast.svg?style=flat)](https://www.npmjs.org/package/make-dev-fast)
+
 ## Usage
 
 ```shell
@@ -17,7 +19,7 @@ If you don't specify a secondary subcommand, all the commands in the `packages.s
 
 You can also use commands like `dev run build` to execute `build` command in scripts.
 
-### dev git <subcommand>
+### dev git(g) <subcommand>
 
 If you don't specify a secondary subcommand, it will display all git subcommands such as `commit`,`push`, etc.
 
@@ -58,5 +60,12 @@ List all matching rules for a user
 
 ### dev command
 #### dev command add
+Add a user defined command, such as 'npm run build'
 #### dev command list
+List all user defined commands.
 #### dev command remove
+Remove a user defined command
+
+
+---
+© MIT
