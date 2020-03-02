@@ -1,5 +1,4 @@
-<center>
-<b>make-dev-fast<b>
+# make-dev-fast
 
 make development faster
 
@@ -7,8 +6,6 @@ make development faster
 <br />
 
 ![usage](./docs/usage.gif)
-
-</center>
 
 ## Usage
 
