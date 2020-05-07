@@ -21,8 +21,7 @@
   "dependencies": {
     "configstore": "^5.0.1",
     "enquirer": "^2.3.4",
-    "minimist": "^1.2.0",
-    "ora": "^4.0.3"
+    "minimist": "^1.2.0"
   },
   "files": [
     "bin",
