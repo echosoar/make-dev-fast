@@ -242,8 +242,8 @@ export class Git extends CommandBase {
 
   private async ad() {
     await this.checkUser();
-    const result = await this.exec('git add --all');
-    console.log('Add', result || 'success');
+    await this.exec('git add --all');
+    console.log('Add success');
   }
 
   private async ci() {
@@ -278,8 +278,8 @@ export class Git extends CommandBase {
     const message = await (enquirer as any).input({
       message: 'Please input commit message',
     });
-    const result = await this.exec(`git commit -m '${type}: ${message}'`);
-    console.log('Commit', result || 'success');
+    await this.exec(`git commit -m '${type}: ${message}'`);
+    console.log('Commit success');
   }
 
   private async ps() {
@@ -288,13 +288,13 @@ export class Git extends CommandBase {
     } else {
       await this.checkUser();
     }
-    const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
-    console.log('Push', result || 'success');
+    await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
+    console.log('Push success');
   }
 
   private async pl() {
     await this.checkUser();
-    const result = await this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
-    console.log('Pull', result || 'success');
+    await this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
+    console.log('Pull success');
   }
 }

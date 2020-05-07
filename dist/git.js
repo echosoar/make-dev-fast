@@ -257,8 +257,8 @@ class Git extends commandBase_1.CommandBase {
     ad() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkUser();
-            const result = yield this.exec('git add --all');
-            console.log('Add', result || 'success');
+            yield this.exec('git add --all');
+            console.log('Add success');
         });
     }
     ci() {
@@ -295,8 +295,8 @@ class Git extends commandBase_1.CommandBase {
             const message = yield enquirer.input({
                 message: 'Please input commit message',
             });
-            const result = yield this.exec(`git commit -m '${type}: ${message}'`);
-            console.log('Commit', result || 'success');
+            yield this.exec(`git commit -m '${type}: ${message}'`);
+            console.log('Commit success');
         });
     }
     ps() {
@@ -307,15 +307,15 @@ class Git extends commandBase_1.CommandBase {
             else {
                 yield this.checkUser();
             }
-            const result = yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
-            console.log('Push', result || 'success');
+            yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
+            console.log('Push success');
         });
     }
     pl() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkUser();
-            const result = yield this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
-            console.log('Pull', result || 'success');
+            yield this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
+            console.log('Pull success');
         });
     }
 }
