@@ -27,17 +27,22 @@ class CommandBase {
             }
         });
     }
-    exec(cmd) {
+    exec(cmd, options) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!cmd) {
                 return '';
             }
             return new Promise((resolved, rejected) => {
-                child_process_1.exec(cmd, (err, result) => {
+                const execProcess = child_process_1.exec(cmd, (err, result) => {
                     if (err) {
                         return rejected(err);
                     }
                     resolved(result.replace(/\n$/, '').replace(/^\s*|\s*$/, ''));
+                });
+                execProcess.stdout.on('data', (data) => {
+                    if (!options || !options.slience) {
+                        console.log(data);
+                    }
                 });
             });
         });

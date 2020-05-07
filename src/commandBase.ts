@@ -19,16 +19,21 @@ export class CommandBase {
     }
   }
 
-  protected async exec(cmd: string): Promise<string> {
+  protected async exec(cmd: string, options?: any): Promise<string> {
     if (!cmd) {
       return '';
     }
     return new Promise((resolved, rejected) => {
-      exec(cmd, (err, result) => {
+      const execProcess = exec(cmd, (err, result) => {
         if (err) {
           return rejected(err);
         }
         resolved(result.replace(/\n$/, '').replace(/^\s*|\s*$/, ''));
+      });
+      execProcess.stdout.on('data', (data) => {
+        if (!options || !options.slience) {
+          console.log(data);
+        }
       });
     });
   }

@@ -14,16 +14,16 @@ export class Git extends CommandBase {
   private async getCurrentGitInfo() {
     const info: any = {};
     try {
-      info.name = await this.exec(`git config user.name`);
-      info.email = await this.exec(`git config user.email`);
-      info.remoteName = (await this.exec(`git remote`)).split(/\n/)[0];
-      info.remoteGitUrl = await this.exec(`git remote get-url ${info.remoteName}`);
+      info.name = await this.exec(`git config user.name`, { slience: true });
+      info.email = await this.exec(`git config user.email`, { slience: true });
+      info.remoteName = (await this.exec(`git remote`, { slience: true })).split(/\n/)[0];
+      info.remoteGitUrl = await this.exec(`git remote get-url ${info.remoteName}`, { slience: true });
       if (/^git@/i.test(info.remoteGitUrl)) {
         info.remoteUrl = info.remoteGitUrl.replace(':', '/').replace('git@', 'https://').replace(/\.git$/, '');
       } else {
         info.remoteUrl = info.remoteGitUrl.replace(/\.git$/, '');
       }
-      info.currenBranch = (await this.exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
+      info.currenBranch = (await this.exec(`git branch`, { slience: true })).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
     } catch (e) { } finally {
       this.info = info;
     }
@@ -60,18 +60,16 @@ export class Git extends CommandBase {
     const newUser = await this.userMatch('add', info.remoteGitUrl);
     if (newUser.name !== info.name) {
       this.info.name = newUser.name;
-      await this.exec(`git config user.name '${newUser.name}'`);
+      await this.exec(`git config user.name '${newUser.name}'`, { slience: true });
     }
     if (newUser.email !== info.email) {
       this.info.email = newUser.email;
-      await this.exec(`git config user.email '${newUser.email}'`);
+      await this.exec(`git config user.email '${newUser.email}'`, { slience: true });
     }
   }
 
   private async subCommand() {
     switch (this.commands[0]) {
-      case 'i': return this.displayGitInfo();
-      case 'info': return this.displayGitInfo();
       case 'user': return this.user();
       case 'match': return this.userMatch();
       case 'ad': return this.ad();
@@ -79,6 +77,7 @@ export class Git extends CommandBase {
       case 'ps': return this.ps();
       case 'pl': return this.pl();
     }
+    return this.displayGitInfo();
   }
 
   private displayGitInfo() {
@@ -254,7 +253,7 @@ export class Git extends CommandBase {
     } else {
       await this.checkUser();
     }
-    const st = await this.exec(`git status`);
+    const st = await this.exec(`git status`, { slience: true });
     if (st.indexOf('nothing to commit') !== -1) {
       console.error('nothing to commit');
       process.exit();

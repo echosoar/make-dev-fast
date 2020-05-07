@@ -13,7 +13,6 @@ const commandBase_1 = require("./commandBase");
 const path_1 = require("path");
 const fs_1 = require("fs");
 const enquirer = require("enquirer");
-const ora = require("ora");
 class Cmd extends commandBase_1.CommandBase {
     execute() {
         return __awaiter(this, void 0, void 0, function* () {
@@ -72,7 +71,6 @@ class Cmd extends commandBase_1.CommandBase {
             }
             cmdCount[command]++;
             this.setCmdCount(cmdCount);
-            const spinner = ora(' executing...').start();
             try {
                 if (typeCmd.type === commandItem.type) {
                     yield typeCmd.client.execute(commandItem.command);
@@ -82,14 +80,12 @@ class Cmd extends commandBase_1.CommandBase {
                 }
             }
             catch (e) {
-                spinner.stop();
                 console.error(`[dev] '${commandItem.command}' error, message:`);
                 console.error();
                 console.error(e.message);
                 console.error(e.trace);
                 return;
             }
-            spinner.stop();
             console.log(`[dev] '${commandItem.command}' succeed! (${Number((Date.now() - start) / 1000).toFixed(2)}s, ${cmdCount[command]}times)`);
         });
     }

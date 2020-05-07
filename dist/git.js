@@ -27,17 +27,17 @@ class Git extends commandBase_1.CommandBase {
         return __awaiter(this, void 0, void 0, function* () {
             const info = {};
             try {
-                info.name = yield this.exec(`git config user.name`);
-                info.email = yield this.exec(`git config user.email`);
-                info.remoteName = (yield this.exec(`git remote`)).split(/\n/)[0];
-                info.remoteGitUrl = yield this.exec(`git remote get-url ${info.remoteName}`);
+                info.name = yield this.exec(`git config user.name`, { slience: true });
+                info.email = yield this.exec(`git config user.email`, { slience: true });
+                info.remoteName = (yield this.exec(`git remote`, { slience: true })).split(/\n/)[0];
+                info.remoteGitUrl = yield this.exec(`git remote get-url ${info.remoteName}`, { slience: true });
                 if (/^git@/i.test(info.remoteGitUrl)) {
                     info.remoteUrl = info.remoteGitUrl.replace(':', '/').replace('git@', 'https://').replace(/\.git$/, '');
                 }
                 else {
                     info.remoteUrl = info.remoteGitUrl.replace(/\.git$/, '');
                 }
-                info.currenBranch = (yield this.exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
+                info.currenBranch = (yield this.exec(`git branch`, { slience: true })).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
             }
             catch (e) { }
             finally {
@@ -72,19 +72,17 @@ class Git extends commandBase_1.CommandBase {
             const newUser = yield this.userMatch('add', info.remoteGitUrl);
             if (newUser.name !== info.name) {
                 this.info.name = newUser.name;
-                yield this.exec(`git config user.name '${newUser.name}'`);
+                yield this.exec(`git config user.name '${newUser.name}'`, { slience: true });
             }
             if (newUser.email !== info.email) {
                 this.info.email = newUser.email;
-                yield this.exec(`git config user.email '${newUser.email}'`);
+                yield this.exec(`git config user.email '${newUser.email}'`, { slience: true });
             }
         });
     }
     subCommand() {
         return __awaiter(this, void 0, void 0, function* () {
             switch (this.commands[0]) {
-                case 'i': return this.displayGitInfo();
-                case 'info': return this.displayGitInfo();
                 case 'user': return this.user();
                 case 'match': return this.userMatch();
                 case 'ad': return this.ad();
@@ -92,6 +90,7 @@ class Git extends commandBase_1.CommandBase {
                 case 'ps': return this.ps();
                 case 'pl': return this.pl();
             }
+            return this.displayGitInfo();
         });
     }
     displayGitInfo() {
@@ -271,7 +270,7 @@ class Git extends commandBase_1.CommandBase {
             else {
                 yield this.checkUser();
             }
-            const st = yield this.exec(`git status`);
+            const st = yield this.exec(`git status`, { slience: true });
             if (st.indexOf('nothing to commit') !== -1) {
                 console.error('nothing to commit');
                 process.exit();

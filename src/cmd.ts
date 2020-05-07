@@ -2,7 +2,6 @@ import { CommandBase } from './commandBase';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
 import * as enquirer from 'enquirer';
-import * as ora from 'ora';
 
 export class Cmd extends CommandBase {
   public async execute() {
@@ -71,7 +70,6 @@ export class Cmd extends CommandBase {
     // x
     cmdCount[command] ++;
     this.setCmdCount(cmdCount);
-    const spinner = ora(' executing...').start();
     try {
       if (typeCmd.type === commandItem.type) {
         await typeCmd.client.execute(commandItem.command);
@@ -79,14 +77,12 @@ export class Cmd extends CommandBase {
         await this.exec(commandItem.command);
       }
     } catch (e) {
-      spinner.stop();
       console.error(`[dev] '${commandItem.command}' error, message:`);
       console.error();
       console.error(e.message);
       console.error(e.trace);
       return;
     }
-    spinner.stop();
     console.log(`[dev] '${commandItem.command}' succeed! (${Number((Date.now() - start) / 1000).toFixed(2)}s, ${cmdCount[command]}times)`);
   }
   private async checkType(): Promise<any> {
