@@ -258,7 +258,7 @@ class Git extends commandBase_1.CommandBase {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkUser();
             const result = yield this.exec('git add --all');
-            console.log(result);
+            console.log('Add', result || 'success');
         });
     }
     ci() {
@@ -296,7 +296,7 @@ class Git extends commandBase_1.CommandBase {
                 message: 'Please input commit message',
             });
             const result = yield this.exec(`git commit -m '${type}: ${message}'`);
-            console.log(result || 'Commit success!');
+            console.log('Commit', result || 'success');
         });
     }
     ps() {
@@ -308,14 +308,14 @@ class Git extends commandBase_1.CommandBase {
                 yield this.checkUser();
             }
             const result = yield this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
-            console.log(result || 'Push success!');
+            console.log('Push', result || 'success');
         });
     }
     pl() {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkUser();
             const result = yield this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
-            console.log(result || 'Pull success!');
+            console.log('Pull', result || 'success');
         });
     }
 }

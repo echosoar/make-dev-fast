@@ -243,7 +243,7 @@ export class Git extends CommandBase {
   private async ad() {
     await this.checkUser();
     const result = await this.exec('git add --all');
-    console.log(result);
+    console.log('Add', result || 'success');
   }
 
   private async ci() {
@@ -279,7 +279,7 @@ export class Git extends CommandBase {
       message: 'Please input commit message',
     });
     const result = await this.exec(`git commit -m '${type}: ${message}'`);
-    console.log(result || 'Commit success!');
+    console.log('Commit', result || 'success');
   }
 
   private async ps() {
@@ -289,12 +289,12 @@ export class Git extends CommandBase {
       await this.checkUser();
     }
     const result = await this.exec(`git push ${this.info.remoteName} ${this.info.currenBranch}`);
-    console.log(result || 'Push success!');
+    console.log('Push', result || 'success');
   }
 
   private async pl() {
     await this.checkUser();
     const result = await this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
-    console.log(result || 'Pull success!');
+    console.log('Pull', result || 'success');
   }
 }
