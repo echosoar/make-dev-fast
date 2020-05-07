@@ -29,6 +29,17 @@ class Npm extends commandBase_1.CommandBase {
             yield this.exec(`npm run ${command}`);
         });
     }
+    setPackageJson(jsonData) {
+        const currentJson = this.getPackageJson();
+        const newJson = Object.assign(Object.assign({}, currentJson), jsonData);
+        if (fs_1.existsSync(this.pkgPath)) {
+            fs_1.writeFileSync(this.pkgPath, JSON.stringify(newJson, null, '  '));
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
     getPackageJson() {
         if (this.pkg) {
             return this.pkg;

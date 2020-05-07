@@ -6,3 +6,8 @@ export interface IUser {
 export interface IGitConfig {
   user: IUser[];
 }
+
+export interface IGitOptions {
+  commitType?: string;
+  message?: string;
+}

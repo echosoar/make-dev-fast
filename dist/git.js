@@ -88,6 +88,7 @@ class Git extends commandBase_1.CommandBase {
                 case 'ci': return this.ci();
                 case 'ps': return this.ps();
                 case 'pl': return this.pl();
+                case 'release': return this.release();
             }
             return this.displayGitInfo();
         });
@@ -261,7 +262,7 @@ class Git extends commandBase_1.CommandBase {
             console.log('Add success');
         });
     }
-    ci() {
+    ci(options) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.ctx.options.s) {
                 yield this.ad();
@@ -274,7 +275,7 @@ class Git extends commandBase_1.CommandBase {
                 console.error('nothing to commit');
                 process.exit();
             }
-            const type = yield enquirer.autocomplete({
+            const type = options.commitType || (yield enquirer.autocomplete({
                 name: 'commitType',
                 message: 'Please select the type of this commit',
                 limit: 10,
@@ -291,18 +292,18 @@ class Git extends commandBase_1.CommandBase {
                     { name: 'ci', message: 'ci: 自动化流程配置修改' },
                     { name: 'revert', message: 'revert: 回滚到上一个版本' },
                 ],
-            });
-            const message = yield enquirer.input({
+            }));
+            const message = options.message || (yield enquirer.input({
                 message: 'Please input commit message',
-            });
+            }));
             yield this.exec(`git commit -m '${type}: ${message}'`);
             console.log('Commit success');
         });
     }
-    ps() {
+    ps(options) {
         return __awaiter(this, void 0, void 0, function* () {
             if (!this.ctx.options.s) {
-                yield this.ci();
+                yield this.ci(options);
             }
             else {
                 yield this.checkUser();
@@ -316,6 +317,63 @@ class Git extends commandBase_1.CommandBase {
             yield this.checkUser();
             yield this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
             console.log('Pull success');
+        });
+    }
+    release() {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield this.checkUser();
+            const tag = yield this.getNewTag();
+            if (!tag) {
+                console.log('Release Error');
+                return;
+            }
+            yield this.exec(`git tag v${tag}`);
+            yield this.exec(`git push ${this.info.remoteName} v${tag}`);
+        });
+    }
+    getNewTag() {
+        return __awaiter(this, void 0, void 0, function* () {
+            let currentVersion = this.commands[1];
+            let versionFrom = `command`;
+            let versionOrigin = currentVersion;
+            if (this.ctx.npm) {
+                const pkg = this.ctx.npm.getPackageJson();
+                versionOrigin = pkg.version;
+                versionFrom = 'package.json';
+            }
+            if (!currentVersion) {
+                currentVersion = versionOrigin;
+            }
+            const vtype = yield enquirer.autocomplete({
+                name: 'releaseVersion',
+                message: 'Release version',
+                choices: [
+                    { name: 'current', message: `Current ${versionFrom} ${currentVersion}` },
+                    { name: 'new', message: 'Input a new version' },
+                ],
+            });
+            if (vtype === 'new') {
+                currentVersion = yield enquirer.input({
+                    message: 'Please input new version (e.g. 0.0.1)',
+                    initial: currentVersion,
+                });
+            }
+            if (versionOrigin !== currentVersion) {
+                if (this.ctx.npm) {
+                    const setResult = this.ctx.npm.setPackageJson({ version: currentVersion });
+                    if (setResult) {
+                        yield this.ps({
+                            commitType: 'release',
+                            message: `v${currentVersion}`,
+                        });
+                    }
+                    else {
+                        console.log(`Set version ${currentVersion} to ${versionFrom} error`);
+                        return;
+                    }
+                }
+            }
+            return currentVersion;
         });
     }
 }

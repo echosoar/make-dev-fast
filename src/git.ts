@@ -1,6 +1,6 @@
 import { CommandBase } from './commandBase';
 import * as enquirer from 'enquirer';
-import { IGitConfig, IUser } from './git.interface';
+import { IGitConfig, IUser, IGitOptions } from './git.interface';
 export class Git extends CommandBase {
   private info: any;
   private gitConfig: any;
@@ -75,6 +75,7 @@ export class Git extends CommandBase {
       case 'ci': return this.ci();
       case 'ps': return this.ps();
       case 'pl': return this.pl();
+      case 'release': return this.release();
     }
     return this.displayGitInfo();
   }
@@ -246,7 +247,7 @@ export class Git extends CommandBase {
     console.log('Add success');
   }
 
-  private async ci() {
+  private async ci(options?: IGitOptions) {
     if (!this.ctx.options.s) {
       await this.ad();
     } else {
@@ -257,7 +258,7 @@ export class Git extends CommandBase {
       console.error('nothing to commit');
       process.exit();
     }
-    const type = await (enquirer as any).autocomplete({
+    const type = options.commitType || await (enquirer as any).autocomplete({
       name: 'commitType',
       message: 'Please select the type of this commit',
       limit: 10,
@@ -275,16 +276,16 @@ export class Git extends CommandBase {
         { name: 'revert', message: 'revert: 回滚到上一个版本' },
       ],
     });
-    const message = await (enquirer as any).input({
+    const message = options.message || await (enquirer as any).input({
       message: 'Please input commit message',
     });
     await this.exec(`git commit -m '${type}: ${message}'`);
     console.log('Commit success');
   }
 
-  private async ps() {
+  private async ps(options?: IGitOptions) {
     if (!this.ctx.options.s) {
-      await this.ci();
+      await this.ci(options);
     } else {
       await this.checkUser();
     }
@@ -296,5 +297,60 @@ export class Git extends CommandBase {
     await this.checkUser();
     await this.exec(`git pull ${this.info.remoteName} ${this.info.currenBranch}`);
     console.log('Pull success');
+  }
+
+  private async release() {
+    await this.checkUser();
+    const tag = await this.getNewTag();
+    if (!tag) {
+      console.log('Release Error');
+      return;
+    }
+    await this.exec(`git tag v${tag}`);
+    await this.exec(`git push ${this.info.remoteName} v${tag}`);
+  }
+
+  // 获取新的tag
+  private async getNewTag() {
+    let currentVersion = this.commands[1];
+    let versionFrom = `command`;
+    let versionOrigin = currentVersion;
+    if (this.ctx.npm) {
+      const pkg = this.ctx.npm.getPackageJson();
+      versionOrigin = pkg.version;
+      versionFrom = 'package.json';
+    }
+    if (!currentVersion) {
+      currentVersion = versionOrigin;
+    }
+    const vtype = await (enquirer as any).autocomplete({
+      name: 'releaseVersion',
+      message: 'Release version',
+      choices: [
+        { name: 'current', message: `Current ${versionFrom} ${currentVersion}` },
+        { name: 'new', message: 'Input a new version' },
+      ],
+    });
+    if (vtype === 'new') {
+      currentVersion = await (enquirer as any).input({
+        message: 'Please input new version (e.g. 0.0.1)',
+        initial: currentVersion,
+      });
+    }
+    if (versionOrigin !== currentVersion) {
+      if ( this.ctx.npm) {
+        const setResult = this.ctx.npm.setPackageJson({ version: currentVersion });
+        if (setResult) {
+          await this.ps({
+            commitType: 'release',
+            message: `v${currentVersion}`,
+          });
+        } else {
+          console.log(`Set version ${currentVersion} to ${versionFrom} error`);
+          return;
+        }
+      }
+    }
+    return currentVersion;
   }
 }

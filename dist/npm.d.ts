@@ -4,5 +4,6 @@ export declare class Npm extends CommandBase {
     private pkgPath;
     getCommands(): string[];
     execute(command: string): Promise<void>;
-    private getPackageJson;
+    setPackageJson(jsonData: any): boolean;
+    getPackageJson(): any;
 }
