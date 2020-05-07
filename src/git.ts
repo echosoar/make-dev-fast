@@ -244,7 +244,6 @@ export class Git extends CommandBase {
   private async ad() {
     await this.checkUser();
     await this.exec('git add --all');
-    console.log('Add success');
   }
 
   private async ci(options?: IGitOptions) {
@@ -280,7 +279,6 @@ export class Git extends CommandBase {
       message: 'Please input commit message',
     });
     await this.exec(`git commit -m '${type}: ${message}'`);
-    console.log('Commit success');
   }
 
   private async ps(options?: IGitOptions) {
@@ -308,6 +306,7 @@ export class Git extends CommandBase {
     }
     await this.exec(`git tag v${tag}`);
     await this.exec(`git push ${this.info.remoteName} v${tag}`);
+    console.log(`Release v${tag} success`);
   }
 
   // 获取新的tag

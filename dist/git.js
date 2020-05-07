@@ -259,7 +259,6 @@ class Git extends commandBase_1.CommandBase {
         return __awaiter(this, void 0, void 0, function* () {
             yield this.checkUser();
             yield this.exec('git add --all');
-            console.log('Add success');
         });
     }
     ci(options) {
@@ -297,7 +296,6 @@ class Git extends commandBase_1.CommandBase {
                 message: 'Please input commit message',
             }));
             yield this.exec(`git commit -m '${type}: ${message}'`);
-            console.log('Commit success');
         });
     }
     ps(options) {
@@ -329,6 +327,7 @@ class Git extends commandBase_1.CommandBase {
             }
             yield this.exec(`git tag v${tag}`);
             yield this.exec(`git push ${this.info.remoteName} v${tag}`);
+            console.log(`Release v${tag} success`);
         });
     }
     getNewTag() {
