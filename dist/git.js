@@ -44,9 +44,10 @@ class Git extends commandBase_1.CommandBase {
             }
         });
     }
-    checkUser() {
+    checkUser(options) {
         return __awaiter(this, void 0, void 0, function* () {
             const info = this.info;
+            options = options || {};
             if (!info.remoteName) {
                 console.error('[Dev] This is not a git repository');
                 process.exit(1);
@@ -58,7 +59,7 @@ class Git extends commandBase_1.CommandBase {
             let user = gitConfig.user.find((userInfo) => {
                 return userInfo.name === info.name && userInfo.email === info.email;
             });
-            if (!user) {
+            if (options.select || !user) {
                 user = yield this.userSelect(true, info);
             }
             const matches = user.matches.find((match) => {
@@ -103,6 +104,8 @@ class Git extends commandBase_1.CommandBase {
             switch (this.commands[1]) {
                 case 'add':
                     return this.userAdd();
+                case 'change':
+                    return this.checkUser({ select: true });
             }
             const gitConfig = this.getGitConfig();
             if (!gitConfig.user) {
@@ -173,11 +176,9 @@ class Git extends commandBase_1.CommandBase {
                         initial: defaultValue,
                     });
                     const exists = user.matches.find((match) => match === matchUrl);
-                    if (exists) {
-                        console.log(`[Dev] '${matchUrl}' already exists!`);
-                        return;
+                    if (!exists) {
+                        user.matches.push(matchUrl);
                     }
-                    user.matches.push(matchUrl);
                     break;
                 case 'remove':
                     if (!user.matches.length) {
@@ -263,6 +264,7 @@ class Git extends commandBase_1.CommandBase {
     }
     ci(options) {
         return __awaiter(this, void 0, void 0, function* () {
+            options = options || {};
             if (!this.ctx.options.s) {
                 yield this.ad();
             }

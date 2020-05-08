@@ -28,8 +28,9 @@ export class Git extends CommandBase {
     }
   }
 
-  private async checkUser() {
+  private async checkUser(options?: any) {
     const info = this.info;
+    options = options || {};
 
     if (!info.remoteName) {
       console.error('[Dev] This is not a git repository');
@@ -44,7 +45,7 @@ export class Git extends CommandBase {
       return userInfo.name === info.name && userInfo.email === info.email;
     });
 
-    if (!user) {
+    if (options.select || !user) {
       user = await this.userSelect(true, info);
     }
     const matches = user.matches.find((match: string) => {
@@ -90,6 +91,8 @@ export class Git extends CommandBase {
     switch (this.commands[1]) {
       case 'add':
         return this.userAdd();
+      case 'change':
+        return this.checkUser({ select: true });
     }
     const gitConfig: IGitConfig = this.getGitConfig();
     if (!gitConfig.user) {
@@ -158,11 +161,9 @@ export class Git extends CommandBase {
           initial: defaultValue,
         });
         const exists = user.matches.find((match) => match === matchUrl);
-        if (exists) {
-          console.log(`[Dev] '${matchUrl}' already exists!`);
-          return;
+        if (!exists) {
+          user.matches.push(matchUrl);
         }
-        user.matches.push(matchUrl);
         break;
       case 'remove':
         if (!user.matches.length) {
@@ -247,6 +248,7 @@ export class Git extends CommandBase {
   }
 
   private async ci(options?: IGitOptions) {
+    options = options || {};
     if (!this.ctx.options.s) {
       await this.ad();
     } else {
