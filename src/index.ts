@@ -4,6 +4,7 @@ import { Git } from './git';
 import { Npm } from './npm';
 import { Cmd } from './cmd';
 import { CmdManager } from './cmdManager';
+import { find } from './find';
 class MDF {
   public options: any;
   public commands: string[];
@@ -40,6 +41,9 @@ class MDF {
         return this.git.main();
       case 'command':
         return this.cmdManager.main();
+      case 'find':
+      case 'f':
+        return find(this.commands[1]);
     }
   }
 }

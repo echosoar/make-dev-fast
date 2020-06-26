@@ -14,6 +14,7 @@ const git_1 = require("./git");
 const npm_1 = require("./npm");
 const cmd_1 = require("./cmd");
 const cmdManager_1 = require("./cmdManager");
+const find_1 = require("./find");
 class MDF {
     constructor(argv) {
         this.options = minimist(argv.slice(2));
@@ -42,6 +43,9 @@ class MDF {
                     return this.git.main();
                 case 'command':
                     return this.cmdManager.main();
+                case 'find':
+                case 'f':
+                    return find_1.find(this.commands[1]);
             }
         });
     }
