@@ -1,6 +1,6 @@
 {
   "name": "make-dev-fast",
-  "version": "0.2.0",
+  "version": "0.2.2",
   "description": "make-dev-fast",
   "main": "./dist/index.js",
   "scripts": {
@@ -11,12 +11,12 @@
     "clean": "rm -rf node_modules/ package-lock.json dist"
   },
   "devDependencies": {
-    "@midwayjs/command-core": "^1.0.0",
     "@types/node": "^10.17.60",
     "esbuild": "^0.13.8",
     "typescript": "^4.1.0"
   },
   "dependencies": {
+    "@midwayjs/command-core": "^1.0.0",
     "enquirer": "^2.3.4",
     "fs-extra": "^10.0.0",
     "minimist": "^1.2.0"
