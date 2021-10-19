@@ -1,26 +1,24 @@
 {
   "name": "make-dev-fast",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "make-dev-fast",
   "main": "./dist/index.js",
   "scripts": {
-    "dev": "tsc --watch",
-    "build": "tslint -c tslint.json 'src/**/*.ts' & tsc --build",
+    "dev": "esbuild src/* --outdir=dist --platform=node --format=cjs --watch",
+    "build": "rm -rf dist && esbuild src/* --outdir=dist --platform=node --format=cjs",
     "test": "jest",
     "coverage": "jest --coverage",
-    "minify": "uglifyjs --compress --mangle --output index.min.js -- ./dist/index.js"
+    "clean": "rm -rf node_modules/ package-lock.json dist"
   },
   "devDependencies": {
-    "@babel/preset-typescript": "^7.3.3",
-    "jest": "^24.9.0",
-    "ts-jest": "^24.0.2",
-    "tslint": "^5.18.0",
-    "typescript": "^3.5.3",
-    "uglify-js": "^3.6.0"
+    "@midwayjs/command-core": "^1.0.0",
+    "@types/node": "^10.17.60",
+    "esbuild": "^0.13.8",
+    "typescript": "^4.1.0"
   },
   "dependencies": {
-    "configstore": "^5.0.1",
     "enquirer": "^2.3.4",
+    "fs-extra": "^10.0.0",
     "minimist": "^1.2.0"
   },
   "files": [
