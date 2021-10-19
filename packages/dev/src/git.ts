@@ -44,7 +44,7 @@ export class GitPlugin extends BasePlugin {
       const name = gitAddressSplit[2].replace(/\.git$/i, '');
       dirName = name;
       gitAddress = `git@${gitAddressSplit[0]}:${gitAddressSplit[1]}/${name}.git`
-      if (gitAddressSplit[3] === 'tree') {
+      if (gitAddressSplit[3] === 'tree' || gitAddressSplit[3] === 'blob') {
         branch = gitAddressSplit[4];
         if (['daily', 'feature', 'releases', 'feat', 'test', 'fix', 'doc', 'tags'].includes(branch) && gitAddressSplit[5]) {
           branch += '/' + gitAddressSplit[5];
