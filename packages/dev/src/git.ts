@@ -35,7 +35,32 @@ export class GitPlugin extends BasePlugin {
 
   async handleCloneDo() {
     const { commands } = this.core.coreOptions;
-    console.log('clone', commands);
+    let gitAddress: string = commands[1];
+    let dirName = '';
+    let branch = '';
+    if (gitAddress.startsWith('http')) {
+      gitAddress = gitAddress.replace(/^https?:\/\//i, '');
+      const gitAddressSplit = gitAddress.split('/');
+      const name = gitAddressSplit[2].replace(/\.git$/i, '');
+      dirName = name;
+      gitAddress = `git@${gitAddressSplit[0]}:${gitAddressSplit[1]}/${name}.git`
+      if (gitAddressSplit[3] === 'tree') {
+        branch = gitAddressSplit[4];
+        if (['daily', 'feature', 'releases', 'feat', 'test', 'fix', 'doc', 'tags'].includes(branch) && gitAddressSplit[5]) {
+          branch += '/' + gitAddressSplit[5];
+        }
+      }
+    } else if (gitAddress.startsWith('git@')) {
+      const gitAddressSplit = gitAddress.split('/');
+      dirName = gitAddressSplit.pop().replace(/\.git$/i, '');
+    }
+    console.log(`git repo ${gitAddress} cloning...`);
+    await exec(`git clone ${gitAddress}${dirName ? ` ${dirName}` : ''}`);
+    if (branch) {
+      await exec(`cd ${dirName};git checkout ${branch}`);
+      console.log(`auto change banch to ${branch}`);
+    }
+    console.log(`git clone ${gitAddress} ${dirName ? `to ${dirName} `:''}success`);
   }
 
   async checkUser() {
