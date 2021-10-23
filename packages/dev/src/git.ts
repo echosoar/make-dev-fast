@@ -4,26 +4,39 @@ import * as enquirer from 'enquirer';
 export class GitPlugin extends BasePlugin {
   commands = {
     git: {
-      usage: 'git info',
+      usage: 'dev git',
       lifecycleEvents: [ 'do' ],
     },
     clone: {
-      usage: 'git clone',
+      usage: 'dev c/clone',
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
       alias: 'c',
     },
     push: {
-      usage: 'git push to current branch',
+      usage: 'dev ps/push',
       lifecycleEvents: [ 'do' ],
       alias: 'ps'
     },
+    status: {
+      usage: 'dev st/status',
+      lifecycleEvents: [ 'do' ],
+      alias: 'st'
+    },
+    checkout: {
+      usage: 'dev co/checkout',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
+      alias: 'co'
+    }
   };
 
   hooks = {
     'git:do': this.handleGitDo.bind(this),
-    'push:do': this.handlePushDo.bind(this),
     'clone:do': this.handleCloneDo.bind(this),
+    'push:do': this.handlePushDo.bind(this),
+    'status:do': this.handleStatusDo.bind(this),
+    'checkout:do': this.handleCheckoutDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -219,6 +232,56 @@ export class GitPlugin extends BasePlugin {
     await this.handleCommitDo();
     await exec(`git push ${this.gitInfo.remoteName} ${this.gitInfo.currenBranch}`);
     console.log('Push success');
+  }
+
+  async handleStatusDo() {
+    await exec('git status', { slience: false });
+  }
+
+  async handleCheckoutDo() {
+    const allBranches = await exec('git branch -a');
+    let isNew = false;
+    let newBranch: string = this.core.coreOptions.commands[1];
+    const allBrancheList = [];
+    allBranches.split("\n").forEach(branch => {
+      allBrancheList.push(branch.replace(/^\s*\*?\s*|\s*$/g, ''));
+    });
+
+    if (!newBranch) {
+      const newBranchType = '+ New Branch';
+      const newBranchName = await (enquirer as any).autocomplete({
+        name: 'selectBranch',
+        message: 'Please select branch',
+        limit: 10,
+        choices: [
+          { name: newBranchType, message: newBranchType },
+          ...allBrancheList.map(branch => {
+            return { name: branch, message: branch };
+          }),
+        ],
+      });
+
+      if (newBranchName === newBranchType) {
+        newBranch = await (enquirer as any).input({
+          message: 'Please input new branch name',
+        });
+      } else {
+        newBranch = newBranchName;
+      }
+    }
+    
+    await this.getCurrentGitInfo();
+
+    if (this.gitInfo.currenBranch === newBranch) {
+      console.log('Current branch is ' + newBranch);
+      return;
+    }
+
+    if (!allBranches.includes(newBranch)) {
+      isNew = true;
+    }
+    await exec(`git checkout ${isNew? '-b ': ''}${newBranch}`);
+    console.log(`Change branch from ${this.gitInfo.currenBranch} to ${newBranch}${isNew ? ' [New]': ''}`);
   }
 
   private async getCurrentGitInfo() {
