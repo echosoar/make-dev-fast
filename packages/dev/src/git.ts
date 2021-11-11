@@ -49,6 +49,7 @@ export class GitPlugin extends BasePlugin {
   async handleCloneDo() {
     const { commands } = this.core.coreOptions;
     let gitAddress: string = commands[1];
+    gitAddress = gitAddress.replace(/[\?\#].*$/, '');
     let dirName = '';
     let branch = '';
     if (gitAddress.startsWith('http')) {
@@ -70,7 +71,7 @@ export class GitPlugin extends BasePlugin {
     console.log(`git repo ${gitAddress} cloning...`);
     await exec(`git clone ${gitAddress}${dirName ? ` ${dirName}` : ''}`);
     if (branch) {
-      await exec(`cd ${dirName};git checkout ${branch}`);
+      await exec(`cd ${dirName};git checkout ${branch} --`);
       console.log(`auto change banch to ${branch}`);
     }
     console.log(`git clone ${gitAddress} ${dirName ? `to ${dirName} `:''}success`);
