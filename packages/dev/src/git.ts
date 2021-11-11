@@ -75,6 +75,10 @@ export class GitPlugin extends BasePlugin {
       console.log(`auto change banch to ${branch}`);
     }
     console.log(`git clone ${gitAddress} ${dirName ? `to ${dirName} `:''}success`);
+    console.log(`You can use the following command to enter the project directory:`);
+    console.log('');
+    console.log(`cd ${dirName}`);
+    console.log('');
   }
 
   async checkUser() {
