@@ -1,6 +1,7 @@
 import { BasePlugin } from '@midwayjs/command-core';
 import { exec, getCache, setCache } from './utils';
 import * as enquirer from 'enquirer';
+import Spin from 'light-spinner';
 export class GitPlugin extends BasePlugin {
   commands = {
     git: {
@@ -69,7 +70,12 @@ export class GitPlugin extends BasePlugin {
       dirName = gitAddressSplit.pop().replace(/\.git$/i, '');
     }
     console.log(`git repo ${gitAddress} cloning...`);
+    const spin = new Spin({
+      text: 'Cloning...',
+    });
+    spin.start();
     await exec(`git clone ${gitAddress}${dirName ? ` ${dirName}` : ''}`);
+    spin.stop();
     if (branch) {
       await exec(`cd ${dirName};git checkout ${branch} --`);
       console.log(`auto change banch to ${branch}`);
@@ -235,7 +241,12 @@ export class GitPlugin extends BasePlugin {
 
   async handlePushDo() {
     await this.handleCommitDo();
+    const spin = new Spin({
+      text: 'Pushing...',
+    });
+    spin.start();
     await exec(`git push ${this.gitInfo.remoteName} ${this.gitInfo.currenBranch}`);
+    spin.stop();
     console.log('Push success');
   }
 
