@@ -249,7 +249,9 @@ export class GitPlugin extends BasePlugin {
     let newBranch: string = this.core.coreOptions.commands[1];
     const allBrancheList = [];
     allBranches.split("\n").forEach(branch => {
-      allBrancheList.push(branch.replace(/^\s*\*?\s*|\s*$/g, ''));
+      branch = branch.replace(/^\s*\*?\s*|\s*$/g, '');
+      branch = branch.replace(/^remotes\/origin\//, '');
+      allBrancheList.push(branch);
     });
 
     if (!newBranch) {
