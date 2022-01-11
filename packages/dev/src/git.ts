@@ -2,6 +2,8 @@ import { BasePlugin } from '@midwayjs/command-core';
 import { exec, getCache, setCache } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
+import { join } from 'path';
+import { existsSync, readFileSync } from 'fs';
 export class GitPlugin extends BasePlugin {
   commands = {
     git: {
@@ -314,7 +316,21 @@ export class GitPlugin extends BasePlugin {
       } else {
         info.remoteUrl = info.remoteGitUrl.replace(/\.git$/, '');
       }
-      info.currenBranch = (await exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch)).replace(/^\*\s*/, '');
+      info.currenBranch = (await exec(`git branch`)).split(/\n/).find((branch) => /^\*\s*/.test(branch))?.replace(/^\*\s*/, '');
+      if (!info.currentBranch) {
+        const gitHeadFile = join(process.cwd(), '.git/HEAD');
+        if (existsSync(gitHeadFile)) {
+          const headFileContentLines = readFileSync(gitHeadFile).toString().split('\n');
+          const ref = headFileContentLines.find(line => line.startsWith('ref: refs/heads/'));
+          if (ref) {
+            info.currenBranch = ref.replace('ref: refs/heads/', '');
+          }
+        }
+      }
+
+      if (!info.currenBranch) {
+        info.currenBranch = 'master';
+      }
     } catch (e) { } finally {
       this.gitInfo = info;
     }
