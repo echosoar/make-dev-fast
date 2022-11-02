@@ -31,6 +31,11 @@ export class GitPlugin extends BasePlugin {
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
       alias: 'co'
+    },
+    reset: {
+      usage: 'dev reset',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
     }
   };
 
@@ -40,6 +45,7 @@ export class GitPlugin extends BasePlugin {
     'push:do': this.handlePushDo.bind(this),
     'status:do': this.handleStatusDo.bind(this),
     'checkout:do': this.handleCheckoutDo.bind(this),
+    'reset:do': this.handleResetDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -254,6 +260,10 @@ export class GitPlugin extends BasePlugin {
 
   async handleStatusDo() {
     await exec('git status', { slience: false });
+  }
+
+  async handleResetDo() {
+    await exec('git checkout .', { slience: false });
   }
 
   async handleCheckoutDo() {
