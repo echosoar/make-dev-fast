@@ -51,3 +51,25 @@ export const setCache = (type, key, value) => {
     ensureFileSync(cacheFile);
     writeFileSync(cacheFile, JSON.stringify(cache));
 }
+
+const verionBase = 1000;
+const verionPatch = verionBase;
+const verionMinor = verionPatch * verionBase;
+const verionMajor = verionMinor * verionBase;
+export const getVersion = version => {
+  if (!version) {
+    return 0;
+  }
+  const tagVersion = version.replace(/[^\d\.]/g, '').split('.');
+  return (tagVersion[0] || 0) * verionMajor + (tagVersion[1] || 0) * verionMinor + (tagVersion[2] || 0) * verionPatch + (tagVersion[3] || 0);
+}
+
+export const formatVersion = version => {
+  let diff = version;
+  const major = Math.floor(diff / verionMajor);
+  diff -= major * verionMajor;
+  const minor =  Math.floor((diff ) / verionMinor);
+  diff -= minor * verionMinor;
+  const patch =  Math.floor((diff ) / verionPatch);
+  return [ major, minor, patch]
+}

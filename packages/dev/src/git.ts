@@ -1,5 +1,5 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { exec, getCache, setCache } from './utils';
+import { exec, formatVersion, getCache, getVersion, setCache } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
@@ -36,6 +36,12 @@ export class GitPlugin extends BasePlugin {
       usage: 'dev reset',
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
+    },
+    release: {
+      usage: 'dev release',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
+      alias: 'r'
     }
   };
 
@@ -46,6 +52,7 @@ export class GitPlugin extends BasePlugin {
     'status:do': this.handleStatusDo.bind(this),
     'checkout:do': this.handleCheckoutDo.bind(this),
     'reset:do': this.handleResetDo.bind(this),
+    'release:do': this.handleReleaseDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -61,6 +68,11 @@ export class GitPlugin extends BasePlugin {
     gitAddress = gitAddress.replace(/[\?\#].*$/, '');
     let dirName = '';
     let branch = '';
+
+    if (gitAddress.startsWith('https://code.')) {
+      gitAddress = gitAddress.replace('https://code.', 'https://gitlab.');
+    }
+
     if (gitAddress.startsWith('http')) {
       gitAddress = gitAddress.replace(/^https?:\/\//i, '');
       const gitAddressSplit = gitAddress.split('/');
@@ -344,5 +356,53 @@ export class GitPlugin extends BasePlugin {
     } catch (e) { } finally {
       this.gitInfo = info;
     }
+  }
+
+  // release tag
+  async handleReleaseDo() {
+    // 获取 tag 版本
+    const tagList = (await exec(`git tag`)).split('\n');
+    let curVersion = 0;
+    for(const tag of tagList) {
+      const versionNumber = getVersion(tag);
+      if (versionNumber > curVersion) {
+        curVersion = versionNumber;
+      }
+    }
+    const curVersionList = formatVersion(curVersion);
+    const patch = `v${[curVersionList[0], curVersionList[1], curVersionList[2] + 1].join('.')}`;
+    const minor = `v${[curVersionList[0], curVersionList[1] + 1, 0].join('.')}`;
+    const major = `v${[curVersionList[0] + 1, 0, 0].join('.')}`;
+    const newVersion = await (enquirer as any).autocomplete({
+      name: 'version',
+      message: `Please select the tag version(curren: v${curVersionList.join('.')})`,
+      limit: 10,
+      choices: [
+        { name: 'patch', message: `patch-${patch}` },
+        { name: 'minor', message: `minor-${minor}` },
+        { name: 'major', message: `major-${major}` },
+        { name: 'other', message: '其他版本' },
+      ],
+    });
+
+    
+    let tag = '';
+    if (newVersion === 'other') {
+      const inputVersion = await (enquirer as any).input({
+        message: 'Please input tag version',
+      });
+      tag = `v${formatVersion(getVersion(inputVersion)).join('.')}`;
+    } else if (newVersion === 'patch') {
+      tag = patch;
+    } else if (newVersion === 'minor') {
+      tag = minor;
+    } else if (newVersion === 'major') {
+      tag = major;
+    }
+    // 获取 release 信息
+    // 打 tag
+    await exec(`git tag -a ${tag} -m "release: ${tag}"`);
+    await exec(`git push origin ${tag}`);
+    console.log(`success tag ${newVersion}`);
   }
 }
