@@ -403,6 +403,6 @@ export class GitPlugin extends BasePlugin {
     // 打 tag
     await exec(`git tag -a ${tag} -m "release: ${tag}"`);
     await exec(`git push origin ${tag}`);
-    console.log(`success tag ${newVersion}`);
+    console.log(`success tag ${tag}`);
   }
 }
