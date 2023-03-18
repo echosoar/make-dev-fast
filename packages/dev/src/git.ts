@@ -420,10 +420,30 @@ export class GitPlugin extends BasePlugin {
   }
 
   async parseLine(lines) {
+    let result = {
+      lang: {},
+      add: 0,
+      del: 0,
+    }
     lines.split('\n').forEach(line => {
       const reg = /^(\d+)\s+(\d+)\s+.*?\.(\w+)$/;
       const match = reg.exec(line);
-      console.log('match', match);
+      if (!match) {
+        return;
+      }
+      const [_, add, del, lang] = match;
+      if (!result.lang[lang]) {
+        result.lang[lang] = {
+          add: 0,
+          del: 0,
+        }
+      }
+      result.lang[lang].add += (+add);
+      result.lang[lang].del += (+del);
+      result.add += result.lang[lang].add;
+      result.del += result.lang[lang].del;
     });
+    console.log('match', result);
+    return result;
   }
 }
