@@ -460,7 +460,9 @@ export class GitPlugin extends BasePlugin {
         method: 'post',
         body:    JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
-      }).catch(() => {});
+      }).catch((e) => {
+        console.log('report error', reportApi, e.message);
+      });
       await sleep(100);
     }
     return result;
