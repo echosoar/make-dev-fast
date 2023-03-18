@@ -268,8 +268,7 @@ export class GitPlugin extends BasePlugin {
     await exec(`git commit -m '${type}: ${message}'`);
     const currentCommitId = await exec(`git rev-parse HEAD`);
     const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
-    this.report(lines);
-    throw new Error('test')
+    await this.report(lines);
   }
 
   async handlePushDo() {
