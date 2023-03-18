@@ -450,7 +450,7 @@ export class GitPlugin extends BasePlugin {
       result.add += result.lang[lang].add;
       result.del += result.lang[lang].del;
     });
-    const reportApi = await getCache('reportApi');
+    const reportApi = await getCache('reportApix');
     console.log('reportApi', reportApi);
 
     return result;
