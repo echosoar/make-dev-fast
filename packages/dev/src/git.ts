@@ -458,7 +458,7 @@ export class GitPlugin extends BasePlugin {
         repo: this.gitInfo.remoteGitUrl
       };
 
-      fetch('reportApi', {
+      fetch(reportApi, {
         method: 'post',
         body:    JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
