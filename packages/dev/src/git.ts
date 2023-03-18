@@ -228,6 +228,7 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handleCommitDo() {
+    const preCommitId = await exec(`git rev-parse HEAD`);
     await this.handleAddDo();
     const st = await exec(`git status`);
     if (st.indexOf('nothing to commit') !== -1) {
@@ -257,10 +258,12 @@ export class GitPlugin extends BasePlugin {
       message: 'Please input commit message',
     });
     await exec(`git commit -m '${type}: ${message}'`);
+    const currentCommitId = await exec(`git rev-parse HEAD`);
+    console.log('p', preCommitId, currentCommitId);
   }
 
   async handlePushDo() {
-    const info = await exec(`git diff --numstat`);
+    
     await this.handleCommitDo();
     const spin = new Spin({
       text: 'Pushing...',
@@ -405,5 +408,12 @@ export class GitPlugin extends BasePlugin {
     await exec(`git tag -a ${tag} -m "release: ${tag}"`);
     await exec(`git push origin ${tag}`);
     console.log(`success tag ${tag}`);
+  }
+
+  async todayInfo() {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const info = await exec(`git log --since=${today}-T00:00:00 --until=${today}-T23:59:59 --numstat`);
+    console.log('info', info);
   }
 }
