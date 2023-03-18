@@ -18,7 +18,7 @@ export class CLI extends CoreBaseCLI {
         throw new Error(err);
       }
     }
-  
+
     async loadPlugins() {
       this.debug('command & options', this.argv);
       await this.loadDefaultOptions();
