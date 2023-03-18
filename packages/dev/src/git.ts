@@ -362,7 +362,6 @@ export class GitPlugin extends BasePlugin {
           }
         }
       }
-      console.log('info.remoteGitUrl', info.remoteGitUrl);
       if (!info.currenBranch) {
         info.currenBranch = 'master';
       }
