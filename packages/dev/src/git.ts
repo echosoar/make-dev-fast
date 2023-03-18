@@ -467,6 +467,8 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handleInfoDo() {
-    console.log('cache file:', getGlobalCache())
+    console.log('version:', require('../package.json').version);
+    console.log('install-at:', __dirname);
+    console.log('cache-file:', getGlobalCache());
   }
 }
