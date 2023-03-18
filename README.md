@@ -12,6 +12,5 @@ $ npm i make-dev-fast -g
 
 $ dev -h
 ```
-
 ---
 © MIT LICENSE
