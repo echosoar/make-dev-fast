@@ -461,7 +461,7 @@ export class GitPlugin extends BasePlugin {
         method: 'post',
         body:    JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
-      }).catch(e => {});
+      }).catch(() => {});
       await sleep(100);
     }
     return result;
