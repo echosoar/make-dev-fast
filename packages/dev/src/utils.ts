@@ -23,7 +23,7 @@ export async function exec(cmd: string, options?: any): Promise<string> {
     });
   }
 
-const getGlobalCache = () => {
+export const getGlobalCache = () => {
     return join(homedir(), '.make-dev-fast/cache.json');
 }
 export const getCache = (type?: string, key?: string) => {
@@ -72,4 +72,10 @@ export const formatVersion = version => {
   diff -= minor * verionMinor;
   const patch =  Math.floor((diff ) / verionPatch);
   return [ major, minor, patch]
+}
+
+export const sleep = (time) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, time || 1000);
+  });
 }

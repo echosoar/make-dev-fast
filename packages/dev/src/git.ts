@@ -1,9 +1,10 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { exec, formatVersion, getCache, getVersion, setCache } from './utils';
+import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache, sleep } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
+import fetch from 'node-fetch';
 export class GitPlugin extends BasePlugin {
   commands = {
     git: {
@@ -42,6 +43,12 @@ export class GitPlugin extends BasePlugin {
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
       alias: 'r'
+    },
+    info: {
+      usage: 'dev info',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
+      alias: 'i'
     }
   };
 
@@ -53,6 +60,7 @@ export class GitPlugin extends BasePlugin {
     'checkout:do': this.handleCheckoutDo.bind(this),
     'reset:do': this.handleResetDo.bind(this),
     'release:do': this.handleReleaseDo.bind(this),
+    'info:do': this.handleInfoDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -228,6 +236,7 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handleCommitDo() {
+    const preCommitId = await exec(`git rev-parse HEAD`);
     await this.handleAddDo();
     const st = await exec(`git status`);
     if (st.indexOf('nothing to commit') !== -1) {
@@ -257,9 +266,13 @@ export class GitPlugin extends BasePlugin {
       message: 'Please input commit message',
     });
     await exec(`git commit -m '${type}: ${message}'`);
+    const currentCommitId = await exec(`git rev-parse HEAD`);
+    const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
+    await this.report(lines);
   }
 
   async handlePushDo() {
+    
     await this.handleCommitDo();
     const spin = new Spin({
       text: 'Pushing...',
@@ -349,7 +362,6 @@ export class GitPlugin extends BasePlugin {
           }
         }
       }
-
       if (!info.currenBranch) {
         info.currenBranch = 'master';
       }
@@ -404,5 +416,61 @@ export class GitPlugin extends BasePlugin {
     await exec(`git tag -a ${tag} -m "release: ${tag}"`);
     await exec(`git push origin ${tag}`);
     console.log(`success tag ${tag}`);
+  }
+
+  async todayInfo() {
+    const now = new Date();
+    const today = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+    const info = await exec(`git log --since=${today}-T00:00:00 --until=${today}-T23:59:59 --numstat`);
+    console.log('info', info);
+  }
+
+  async report(lines) {
+    let result = {
+      lang: {},
+      add: 0,
+      del: 0,
+    }
+    lines.split('\n').forEach(line => {
+      const reg = /^(\d+)\s+(\d+)\s+.*?\.(\w+)$/;
+      const match = reg.exec(line);
+      if (!match) {
+        return;
+      }
+      const [_, add, del, lang] = match;
+      if (!result.lang[lang]) {
+        result.lang[lang] = {
+          add: 0,
+          del: 0,
+        }
+      }
+      result.lang[lang].add += (+add);
+      result.lang[lang].del += (+del);
+      result.add += result.lang[lang].add;
+      result.del += result.lang[lang].del;
+    });
+    const reportApi = await getCache('reportApi');
+    if (typeof reportApi === 'string') {
+      const body = {
+        ...result,
+        repo: this.gitInfo.remoteGitUrl
+      };
+
+      fetch(reportApi, {
+        method: 'post',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+      }).catch((e) => {
+        console.log('report error', reportApi, e.message);
+      });
+      await sleep(100);
+    }
+    return result;
+  }
+
+  async handleInfoDo() {
+    console.log('version:', require('../package.json').version);
+    console.log('install-at:', __dirname);
+    console.log('cache-file:', getGlobalCache());
   }
 }

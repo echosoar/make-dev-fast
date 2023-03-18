@@ -1,6 +1,6 @@
 {
   "name": "make-dev-fast",
-  "version": "0.2.11",
+  "version": "0.2.15",
   "description": "make-dev-fast",
   "main": "./dist/index.js",
   "scripts": {
@@ -20,7 +20,8 @@
     "enquirer": "^2.3.4",
     "fs-extra": "^10.0.0",
     "light-spinner": "^1.0.4",
-    "minimist": "^1.2.0"
+    "minimist": "^1.2.0",
+    "node-fetch": "^2.6.9"
   },
   "files": [
     "bin",
