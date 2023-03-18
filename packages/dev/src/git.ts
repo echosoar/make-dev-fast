@@ -260,7 +260,8 @@ export class GitPlugin extends BasePlugin {
     await exec(`git commit -m '${type}: ${message}'`);
     const currentCommitId = await exec(`git rev-parse HEAD`);
     const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
-    console.log('lines', lines);
+    this.parseLine(lines);
+    throw new Error('test')
   }
 
   async handlePushDo() {
@@ -416,5 +417,13 @@ export class GitPlugin extends BasePlugin {
     const today = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
     const info = await exec(`git log --since=${today}-T00:00:00 --until=${today}-T23:59:59 --numstat`);
     console.log('info', info);
+  }
+
+  async parseLine(lines) {
+    lines.split('\n').forEach(line => {
+      const reg = /^(\d+)\s+(\d+)\s+.*?\.(\w+)$/;
+      const match = reg.exec(line);
+      console.log('match', match);
+    });
   }
 }
