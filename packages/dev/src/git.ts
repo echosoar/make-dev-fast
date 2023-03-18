@@ -1,5 +1,5 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { exec, formatVersion, getCache, getVersion, setCache } from './utils';
+import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
@@ -42,6 +42,12 @@ export class GitPlugin extends BasePlugin {
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
       alias: 'r'
+    },
+    info: {
+      usage: 'dev info',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
+      alias: 'i'
     }
   };
 
@@ -53,6 +59,7 @@ export class GitPlugin extends BasePlugin {
     'checkout:do': this.handleCheckoutDo.bind(this),
     'reset:do': this.handleResetDo.bind(this),
     'release:do': this.handleReleaseDo.bind(this),
+    'info:do': this.handleInfoDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -443,7 +450,13 @@ export class GitPlugin extends BasePlugin {
       result.add += result.lang[lang].add;
       result.del += result.lang[lang].del;
     });
-    console.log('match', result);
+    const reportApi = await getCache('reportApi');
+    console.log('reportApi', reportApi);
+
     return result;
+  }
+
+  async handleInfoDo() {
+    console.log('cache file:', getGlobalCache())
   }
 }

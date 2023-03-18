@@ -23,7 +23,7 @@ export async function exec(cmd: string, options?: any): Promise<string> {
     });
   }
 
-const getGlobalCache = () => {
+export const getGlobalCache = () => {
     return join(homedir(), '.make-dev-fast/cache.json');
 }
 export const getCache = (type?: string, key?: string) => {
