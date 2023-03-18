@@ -73,3 +73,9 @@ export const formatVersion = version => {
   const patch =  Math.floor((diff ) / verionPatch);
   return [ major, minor, patch]
 }
+
+export const sleep = (time) => {
+  return new Promise(resolve => {
+    setTimeout(resolve, time || 1000);
+  })
+}

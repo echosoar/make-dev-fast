@@ -1,9 +1,10 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache } from './utils';
+import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache, sleep } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
+import fetch from 'node-fetch';
 export class GitPlugin extends BasePlugin {
   commands = {
     git: {
@@ -267,7 +268,7 @@ export class GitPlugin extends BasePlugin {
     await exec(`git commit -m '${type}: ${message}'`);
     const currentCommitId = await exec(`git rev-parse HEAD`);
     const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
-    this.parseLine(lines);
+    this.report(lines);
     throw new Error('test')
   }
 
@@ -362,7 +363,7 @@ export class GitPlugin extends BasePlugin {
           }
         }
       }
-
+      console.log('info.remoteGitUrl', info.remoteGitUrl);
       if (!info.currenBranch) {
         info.currenBranch = 'master';
       }
@@ -426,7 +427,7 @@ export class GitPlugin extends BasePlugin {
     console.log('info', info);
   }
 
-  async parseLine(lines) {
+  async report(lines) {
     let result = {
       lang: {},
       add: 0,
@@ -450,9 +451,20 @@ export class GitPlugin extends BasePlugin {
       result.add += result.lang[lang].add;
       result.del += result.lang[lang].del;
     });
-    const reportApi = await getCache('reportApix');
-    console.log('reportApi', reportApi);
+    const reportApi = await getCache('reportApi');
+    if (typeof reportApi === 'string') {
+      const body = {
+        ...result,
+        repo: this.gitInfo.remoteGitUrl
+      };
 
+      fetch('reportApi', {
+        method: 'post',
+        body:    JSON.stringify(body),
+        headers: { 'Content-Type': 'application/json' },
+      }).catch(e => {});
+      await sleep(100);
+    }
     return result;
   }
 
