@@ -260,6 +260,7 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handlePushDo() {
+    const info = await exec(`git diff --numstat`);
     await this.handleCommitDo();
     const spin = new Spin({
       text: 'Pushing...',
