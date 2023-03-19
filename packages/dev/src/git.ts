@@ -450,10 +450,15 @@ export class GitPlugin extends BasePlugin {
       result.del += result.lang[lang].del;
     });
     const reportApi = await getCache('reportApi');
+
+    let repo = this.gitInfo.remoteGitUrl;
+    if (!repo.includes('github.com') && !repo.includes('gitlab.com')) {
+      repo = 'private:' + this.gitInfo.remoteGitUrl.replace(/(\.git|\/)$/i, '').split('/').pop();
+    }
     if (typeof reportApi === 'string') {
       const body = {
         ...result,
-        repo: this.gitInfo.remoteGitUrl
+        repo,
       };
 
       fetch(reportApi, {
@@ -465,6 +470,7 @@ export class GitPlugin extends BasePlugin {
       });
       await sleep(100);
     }
+    console.log(`+${result.add} / -${result.del}`);
     return result;
   }
 
