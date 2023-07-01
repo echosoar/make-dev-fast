@@ -1,7 +1,7 @@
 import { exec as cpExec } from 'child_process';
 import { join } from 'path';
 import { homedir } from 'os';
-import { existsSync, readFileSync, ensureFileSync } from 'fs-extra';
+import { existsSync, readFileSync, ensureFileSync, access } from 'fs-extra';
 import { writeFileSync } from 'fs';
 export async function exec(cmd: string, options?: any): Promise<string> {
     if (!cmd) {
@@ -78,4 +78,13 @@ export const sleep = (time) => {
   return new Promise(resolve => {
     setTimeout(resolve, time || 1000);
   });
+}
+
+export const exists = async file => {
+  try {
+    await access(file);
+    return true;
+  } catch {
+    return false;
+  }
 }

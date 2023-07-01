@@ -1,9 +1,10 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache, sleep } from './utils';
+import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache, sleep, exists } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
 import { existsSync, readFileSync } from 'fs';
+import {  readFile } from 'fs-extra';
 import fetch from 'node-fetch';
 export class GitPlugin extends BasePlugin {
   commands = {
@@ -232,7 +233,26 @@ export class GitPlugin extends BasePlugin {
 
   async handleAddDo() {
     await this.checkUser();
+
+    if (['main', 'master'].includes(this.gitInfo.currenBranch)) {
+      console.warn(``);
+      console.warn(`>> Committing to the '${this.gitInfo.currenBranch}' branch is risky! <<`);
+      console.warn(``);
+      await this.needConfirm();
+    }
+    // auto check ignore
+    await this.checkIgnoreFile();
     await exec('git add --all');
+  }
+
+  async needConfirm() {
+    const message = await (enquirer as any).input({
+      message: 'Please input y/yes/ok to continue',
+    });
+    if (!['y', 'yes', 'ok'].includes(message.toLowerCase())) {
+      console.log(`Operation blocked! (input ${message || 'nothing'})`);
+      process.exit();
+    }
   }
 
   async handleCommitDo() {
@@ -240,6 +260,7 @@ export class GitPlugin extends BasePlugin {
     await this.handleAddDo();
     const st = await exec(`git status`);
     if (st.indexOf('nothing to commit') !== -1) {
+      console.warn('nothing to commit');
       return;
     }
     const type = await (enquirer as any).autocomplete({
@@ -336,6 +357,38 @@ export class GitPlugin extends BasePlugin {
     }
     await exec(`git checkout ${isNew? '-b ': ''}${newBranch}`);
     console.log(`Change branch from ${this.gitInfo.currenBranch} to ${newBranch}${isNew ? ' [New]': ''}`);
+  }
+
+  private async checkIgnoreFile() {
+    const ignoreFile = join(this.core.cwd, '.gitignore');
+    const isExists = await exists(ignoreFile);
+    if (!isExists) {
+      console.warn(``);
+      console.warn(`>> Missing .gitignore file in ${this.core.cwd} <<`);
+      console.warn(``);
+      await this.needConfirm();
+      return;
+    }
+    const ignoreFileCode = await readFile(ignoreFile, 'utf-8');
+    await this.checkFileInIgnore(ignoreFileCode, 'node_modules');
+    await this.checkFileInIgnore(ignoreFileCode, 'dist');
+    await this.checkFileInIgnore(ignoreFileCode, 'coverage');
+  }
+
+  private async checkFileInIgnore(code: string, fileName: string) {
+    const file = join(this.core.cwd, fileName);
+    const isExists = await exists(file);
+    if (!isExists) {
+      return;
+    }
+    const find = code.split('\n').find(line => line.includes(fileName));
+    if (find) {
+      return;
+    }
+    console.warn(``);
+    console.warn(`>> ${ fileName} not in .gitignore file <<`);
+    console.warn(``);
+    await this.needConfirm();
   }
 
   private async getCurrentGitInfo() {
