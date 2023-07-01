@@ -240,8 +240,7 @@ export class GitPlugin extends BasePlugin {
     await this.handleAddDo();
     const st = await exec(`git status`);
     if (st.indexOf('nothing to commit') !== -1) {
-      console.error('nothing to commit');
-      process.exit();
+      return;
     }
     const type = await (enquirer as any).autocomplete({
       name: 'commitType',
