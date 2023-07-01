@@ -446,8 +446,8 @@ export class GitPlugin extends BasePlugin {
       }
       result.lang[lang].add += (+add);
       result.lang[lang].del += (+del);
-      result.add += result.lang[lang].add;
-      result.del += result.lang[lang].del;
+      result.add += (+add);
+      result.del += (+del);
     });
     const reportApi = await getCache('reportApi');
 

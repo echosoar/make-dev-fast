@@ -1,5 +1,6 @@
 import { CoreBaseCLI } from '@midwayjs/command-core';
 import { GitPlugin } from './git';
+import { WherePlugin } from './where';
 
 export class CLI extends CoreBaseCLI {
     // cli 扩展
@@ -27,6 +28,7 @@ export class CLI extends CoreBaseCLI {
 
     async loadDefaultPlugin() {
         this.core.addPlugin(GitPlugin);
+        this.core.addPlugin(WherePlugin);
     }
   
     async loadDefaultOptions() {
