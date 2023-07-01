@@ -6,10 +6,90 @@
 <br />
 
 ## Usage
-
+### 安装
 ```shell
 $ npm i make-dev-fast -g
 
+$ dev -h
+```
+
+
+### Git 操作命令
+
+#### ps/push 命令：Git 提交代码
+
+包含如下功能：
++ 分支检测：在提交代码时，会检测当前提交的分支是否为 `master` 或 `main`，如果是，会提示二次确认，避免错误提交代码。
++ `.gitignore` 检测：在提交代码时，会检测是否对 `node_modules` 等配置了 `.gitignore`，避免错误提交代码。
++ 自动 add 和 commit 信息辅助：在提交代码时，会在命令行中出现 `feat`、`fix`、`chore`、 `test` 等提交信息格式化前缀，帮助你编写更好的提交信息。
++ 计算代码变更数量：计算本次提交新增、减少了多少行代码，并会根据不同的语言类型分类计算，
+
+```shell
+$ dev ps
+# 或
+$ dev push
+```
+
+#### co/checkout 命令：辅助变更分支
+
+包含如下功能：
++ 分支搜索：执行 `dev co` 的时候，会出现一个可以输入检索的选择列表，通过输入和键盘上下键，高效的选择要切换的分支
++ 创建分支：执行 `dev co xxx` 的时候，如果 xxx 分支不存在，会自动创建 xxx 分支，并切换到 xxx 分支
+
+```shell
+$ dev co
+# 或
+$ dev checkout
+```
+
+#### clone 命令：辅助克隆 git 仓库
+
+包含如下功能：
++ 自动格式化：支持 git@xxx.com、https://xxx.com/xxx 等等多种格式的地址，甚至是仓库中的一个文件的访问地址（如：`https://github.com/echosoar/make-dev-fast/blob/master/packages/dev/README.md`），都能自动格式化成可以 clone 的仓库地址
++ 自动切换分支：当 clone 的地址，存在分支相关的内容时，会在 clone 完成后，自动切换到对应的分支，如 `https://github.com/echosoar/make-dev-fast/blob/v0.2.11/packages/dev/README.md`，会在 clone 之后，切换到 `v0.2.11` 分支
++ 自动安装依赖：当 clone 完成后，对支持的仓库类型，会输入是否自动安装依赖确认，确认后会自动安装仓库的依赖，如匹配到 node.js 项目，可以自动选择 `npm`、`yarn` 或 `pnpm` 等进行依赖安装。
+
+```shell
+$ dev clone https://github.com/echosoar/make-dev-fast
+```
+
+#### git 命令：输出当前的 git 相关信息
+
+包含如下信息：
++ name：对当前仓库进行操作的 git 用户名。
++ email：对当前仓库进行操作的 git 用户 email。
++ remoteUrl：远程仓库 http 协议地址，如："https://github.com/echosoar/make-dev-fast
++ remoteGitUrl：远程仓库 git 协议地址，如：git@github.com:echosoar/make-dev-fast.git
++ remoteName：远程仓库 git 地址名，如 origin，
++ currenBranch：当前分支名，如 master
+
+```shell
+$ dev git
+```
+
+
+#### reset 命令：回滚变更
+
+支持回滚本地所有的变更，包括本地已经 commit 但是还没有 push 的变更
+
+```shell
+$ dev reset
+```
+
+### where 命令：查找本地的全局命令位置
+```shell
+$ dev where npm
+
+# 会有如下输出
+npm -> /usr/local/bin/npm [bin]
+npm -> /usr/local/lib/node_modules/npm/bin/npm-cli.js [link]
+```
+
+查找对应的命令的可执行文件(bin)所在位置。
+如果对应的可执行文件是个软连，还会继续寻找原始的路径位置，进行输出。
+
+### 其他更多命令
+```shell
 $ dev -h
 ```
 ---
