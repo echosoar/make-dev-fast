@@ -360,6 +360,7 @@ export class GitPlugin extends BasePlugin {
   }
 
   private async checkIgnoreFile() {
+    // TODO: 找到当前git项目根目录
     const ignoreFile = join(this.core.cwd, '.gitignore');
     const isExists = await exists(ignoreFile);
     if (!isExists) {
