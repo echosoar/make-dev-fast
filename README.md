@@ -88,9 +88,20 @@ npm -> /usr/local/lib/node_modules/npm/bin/npm-cli.js [link]
 查找对应的命令的可执行文件(bin)所在位置。
 如果对应的可执行文件是个软连，还会继续寻找原始的路径位置，进行输出。
 
+
+### static 命令：在某个目录启动本地开发 server
+```shell
+$ dev static
+$ dev static --port=7788
+$ dev static --dir=./src
+```
+* 默认端口：12777，可以通过 `--port` 参数指定
+* 默认目录：当前执行目录，可以通过 `--dir` 参数指定
+
+
 ### 其他更多命令
 ```shell
 $ dev -h
 ```
 ---
-© MIT LICENSE
+© MIT LICENSE 

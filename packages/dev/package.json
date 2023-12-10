@@ -19,6 +19,8 @@
     "@midwayjs/command-core": "^1.0.0",
     "enquirer": "^2.3.4",
     "fs-extra": "^10.0.0",
+    "koa": "^2.14.2",
+    "koa-static": "^5.0.0",
     "light-spinner": "^1.0.4",
     "minimist": "^1.2.0",
     "node-fetch": "^2.6.9"

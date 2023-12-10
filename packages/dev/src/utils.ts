@@ -1,6 +1,6 @@
 import { exec as cpExec } from 'child_process';
 import { join } from 'path';
-import { homedir } from 'os';
+import { homedir, networkInterfaces } from 'os';
 import { existsSync, readFileSync, ensureFileSync, access } from 'fs-extra';
 import { writeFileSync } from 'fs';
 export async function exec(cmd: string, options?: any): Promise<string> {
@@ -86,5 +86,30 @@ export const exists = async file => {
     return true;
   } catch {
     return false;
+  }
+}
+
+export const time = () => {
+  const date = new Date();
+  return `${padZero(date.getMonth() + 1)}/${padZero(date.getDate())} ${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}`;
+}
+
+const padZero = (num: any, len = 2) => {
+  return ('0000' + num).slice(-len);
+}
+
+export const getIp = () => {
+  const interfaces = networkInterfaces(); // 在开发环境中获取局域网中的本机iP地址
+  for (const devName in interfaces) {
+    const iface = interfaces[devName];
+    for (const alias of iface) {
+      if (
+        alias.family === 'IPv4' &&
+        alias.address !== '127.0.0.1' &&
+        !alias.internal
+      ) {
+        return alias.address;
+      }
+    }
   }
 }
