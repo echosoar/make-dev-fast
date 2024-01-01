@@ -2,6 +2,7 @@ import { CoreBaseCLI } from '@midwayjs/command-core';
 import { GitPlugin } from './git';
 import { WherePlugin } from './where';
 import { StaticServerPlugin } from './static';
+import { InitPlugin } from './init';
 
 export class CLI extends CoreBaseCLI {
     // cli 扩展
@@ -28,6 +29,7 @@ export class CLI extends CoreBaseCLI {
     }
 
     async loadDefaultPlugin() {
+        this.core.addPlugin(InitPlugin);
         this.core.addPlugin(GitPlugin);
         this.core.addPlugin(WherePlugin);
         this.core.addPlugin(StaticServerPlugin);
