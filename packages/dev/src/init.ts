@@ -4,7 +4,7 @@ import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
 import { createWriteStream } from 'fs';
-import { exists } from './utils';
+import { exec, exists } from './utils';
 import { tmpdir } from 'os';
 import { ensureDir } from 'fs-extra';
 export class InitPlugin extends BasePlugin {
@@ -51,7 +51,7 @@ export class InitPlugin extends BasePlugin {
     spin.start();
     const templateVersion = (await fetch(`https://registry.npmmirror.com/${templateInfo.target}/latest/files/package.json`).then(res => res.json())).version;
     // 下载模板
-    const file = join(tmpdir(), `mdf_tpl_${Date.now()}.zip`);
+    const file = join(tmpdir(), `mdf_tpl_${Date.now()}.tgz`);
     const writeFileStream = createWriteStream(file);
     await new Promise((resolve) => {
         fetch(`https://registry.npmmirror.com/${templateInfo.target}/-/${templateInfo.target}-${templateVersion}.tgz`).then(res => {
@@ -59,9 +59,10 @@ export class InitPlugin extends BasePlugin {
             res.body.pipe(writeFileStream);
         });
     });
-
     
-    console.log('template', file);
+    const targetDir = file.replace('.tgz', '_dir');
     // TODO: unzip
+    await exec(`tar -zxvf ${file} ${targetDir}`);
+    console.log('template', file, targetDir);
   }
 }
