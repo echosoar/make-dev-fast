@@ -3,10 +3,11 @@ import fetch from 'node-fetch';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
-import { createWriteStream } from 'fs';
+import { createWriteStream, existsSync } from 'fs';
 import { exec, exists } from './utils';
 import { tmpdir } from 'os';
-import { ensureDir } from 'fs-extra';
+import { ensureDir, copy } from 'fs-extra';
+const globby = require('globby');
 export class InitPlugin extends BasePlugin {
   commands = {
     init: {
@@ -61,8 +62,25 @@ export class InitPlugin extends BasePlugin {
     });
     
     const targetDir = file.replace('.tgz', '_dir');
+    await ensureDir(targetDir);
     // TODO: unzip
-    await exec(`tar -zxvf ${file} ${targetDir}`);
-    console.log('template', file, targetDir);
+    await exec(`tar -zxvf ${file} -C ${targetDir}`);
+    const templateDir = join(targetDir, 'package/template');
+    spin.stop();
+
+    const paths = await globby('**/*', {
+      cwd: templateDir
+    });
+    for(const path of paths) {
+      const origin = join(templateDir, path);
+      let targetPath = path.replace(/^dot./, '.');
+      const target = join(dir, targetPath);
+      if (!existsSync(target)) {
+        await copy(origin, target);
+      }
+    }
+
+    console.log();
+    console.log(`Success init project at ${dir}`);
   }
 }

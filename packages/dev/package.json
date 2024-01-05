@@ -1,6 +1,6 @@
 {
   "name": "make-dev-fast",
-  "version": "0.2.18",
+  "version": "0.2.19",
   "description": "make-dev-fast",
   "main": "./dist/index.js",
   "scripts": {
@@ -19,6 +19,7 @@
     "@midwayjs/command-core": "^1.0.0",
     "enquirer": "^2.3.4",
     "fs-extra": "^10.0.0",
+    "globby": "^10.0.2",
     "koa": "^2.14.2",
     "koa-static": "^5.0.0",
     "light-spinner": "^1.0.4",
