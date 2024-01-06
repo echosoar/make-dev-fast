@@ -1,0 +1,7 @@
+{
+    "name": "make-dev-fast-tpl-ts-bin",
+    "version": "0.0.1",
+    "files": [
+        "template"
+    ]
+}
