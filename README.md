@@ -1,6 +1,6 @@
 # make-dev-fast
 
-让开发变得即方便又快，提供了很多开发时常用的命令，包括 git 相关操作、系统信息、文件上传等等。
+通过本工具，让开发变得又快又方便，提供了很多开发时常用的命令，包括项目初始化脚手架、 git 相关操作优化、本地服务器、获取系统负载信息、快捷的文件上传等等。
 
 [![npm](https://img.shields.io/npm/v/make-dev-fast.svg?style=flat)](https://www.npmjs.org/package/make-dev-fast)
 <br />
@@ -85,10 +85,12 @@ $ dev init
 目前提供如下项目脚手架模板
 
 
-|语言|环境|
-|---|---|
-| Typescript | Node.js |
-
+|名称|语言|环境| 描述 |
+|---|---|---|---|
+|ts-node| Typescript | Node.js | 纯 NPM 包 |
+|ts-bin| Typescript | Node.js | 命令行工具 |
+|ts-web| Typescript | Browser | 浏览器工具包 |
+|ts-react| Typescript | Browser | 浏览器 React 组件 |
 
 
 ### static 命令：在某个目录启动本地开发 server
@@ -112,7 +114,6 @@ npm -> /usr/local/lib/node_modules/npm/bin/npm-cli.js [link]
 
 查找对应的命令的可执行文件(bin)所在位置。
 如果对应的可执行文件是个软连，还会继续寻找原始的路径位置，进行输出。
-
 
 
 
