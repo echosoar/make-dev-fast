@@ -1,14 +1,14 @@
 {
     "name": "make-dev-fast-tpl-list",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "list": [
         {
             "name": "TypeScript Node NPM",
             "target": "make-dev-fast-tpl-ts-node"
         },
         {
-            "name": "TypeScript Web NPM",
-            "target": "make-dev-fast-tpl-ts-web"
+            "name": "TypeScript Node Bin",
+            "target": "make-dev-fast-tpl-ts-bin"
         }
     ]
 }
