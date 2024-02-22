@@ -62,6 +62,8 @@ $ dev clone https://github.com/echosoar/make-dev-fast
 + remoteGitUrl：远程仓库 git 协议地址，如：git@github.com:echosoar/make-dev-fast.git
 + remoteName：远程仓库 git 地址名，如 origin，
 + currenBranch：当前分支名，如 master
+* lastCommitId：本地当前分支最后一次 commmit id
+* mergedMaster：最后一次 commit id 是否已经合入 master
 
 ```shell
 $ dev git
