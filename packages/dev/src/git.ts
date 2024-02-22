@@ -418,6 +418,14 @@ export class GitPlugin extends BasePlugin {
       if (!info.currenBranch) {
         info.currenBranch = 'master';
       }
+      const log = await exec(`git log`);
+      const commitIdReg = /commit\s+([\w]{40})/;
+      if (commitIdReg.test(log)) {
+        info.lastCommitId= commitIdReg.exec(log)[1];
+        const merged = await exec(`git log master | grep ${info.lastCommitId}`);
+        info.mergedMaster = !!merged;
+      }
+      
     } catch (e) { } finally {
       this.gitInfo = info;
     }
