@@ -256,7 +256,6 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handleCommitDo() {
-    const preCommitId = await exec(`git rev-parse HEAD`);
     await this.handleAddDo();
     const st = await exec(`git status`);
     if (st.indexOf('nothing to commit') !== -1) {
@@ -286,9 +285,12 @@ export class GitPlugin extends BasePlugin {
       message: 'Please input commit message',
     });
     await exec(`git commit -m '${type}: ${message}'`);
-    const currentCommitId = await exec(`git rev-parse HEAD`);
-    const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
-    await this.report(lines);
+    try {
+      const preCommitId = await exec(`git rev-parse HEAD`);
+      const currentCommitId = await exec(`git rev-parse HEAD`);
+      const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
+      await this.report(lines);
+    } catch {}
   }
 
   async handlePushDo() {

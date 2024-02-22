@@ -1,6 +1,6 @@
 {
   "name": "make-dev-fast",
-  "version": "0.2.20",
+  "version": "0.2.21",
   "description": "make-dev-fast",
   "main": "./dist/index.js",
   "scripts": {
