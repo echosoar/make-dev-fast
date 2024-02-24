@@ -30,6 +30,8 @@ $ dev ps
 $ dev push
 ```
 
+额外支持 `--no-verify`（或 `--pass`）来跳过 pre commit check。
+
 #### co/checkout 命令：辅助变更分支
 
 包含如下功能：

@@ -284,7 +284,11 @@ export class GitPlugin extends BasePlugin {
     const message = await (enquirer as any).input({
       message: 'Please input commit message',
     });
-    await exec(`git commit -m '${type}: ${message}'`);
+    let cmd = `git commit -m '${type}: ${message}'`;
+    if (this.options['no-verify'] || this.options['pass']) {
+      cmd += ' --no-verify'
+    }
+    await exec(cmd);
     try {
       const preCommitId = await exec(`git rev-parse HEAD`);
       const currentCommitId = await exec(`git rev-parse HEAD`);
