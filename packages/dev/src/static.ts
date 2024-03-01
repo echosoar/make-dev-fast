@@ -22,6 +22,12 @@ export class StaticServerPlugin extends BasePlugin {
     const baseDir = this.options.dir || process.cwd();
     const app = new koa();
     app.use((ctx, next) => {
+      ctx.set('Access-Control-Allow-Origin', '*');
+      ctx.set('Access-Control-Allow-Headers', ctx.request.headers['access-control-request-headers'] || 'Content-Type');
+      if (ctx.request.method.toLowerCase() === 'options') {
+        ctx.body = 'success';
+        return;
+      }
       const path = ctx.request.url;
       console.log(`- [${ctx.request.method} - ${time()}] ${path}`);
       return next();
