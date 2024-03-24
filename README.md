@@ -31,6 +31,7 @@ $ dev push
 ```
 
 额外支持 `--no-verify`（或 `--pass`）来跳过 pre commit check。
+另外，在 git commit 的时候，会自动在本地目录记录当前仓库新增、删除了多少行代码，便于统计，可以使用 `dev info` 查看相关代码变更数量信息。
 
 #### co/checkout 命令：辅助变更分支
 

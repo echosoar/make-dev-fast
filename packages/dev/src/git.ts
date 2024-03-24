@@ -1,11 +1,14 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache, sleep, exists } from './utils';
+import { exec, formatVersion, getCache, getVersion, setCache, getGlobalCache, sleep, exists, time } from './utils';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readFileSync, writeFileSync } from 'fs';
 import {  readFile } from 'fs-extra';
 import fetch from 'node-fetch';
+
+const codeInfoFile = join(__dirname, 'codeinfo.txt');
+
 export class GitPlugin extends BasePlugin {
   commands = {
     git: {
@@ -262,6 +265,10 @@ export class GitPlugin extends BasePlugin {
       console.warn('nothing to commit');
       return;
     }
+    let preCommitId;
+    try {
+      preCommitId = await exec(`git rev-parse HEAD`);
+    } catch {}
     const type = await (enquirer as any).autocomplete({
       name: 'commitType',
       message: 'Please select the type of this commit',
@@ -290,7 +297,6 @@ export class GitPlugin extends BasePlugin {
     }
     await exec(cmd);
     try {
-      const preCommitId = await exec(`git rev-parse HEAD`);
       const currentCommitId = await exec(`git rev-parse HEAD`);
       const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
       await this.report(lines);
@@ -538,6 +544,12 @@ export class GitPlugin extends BasePlugin {
       await sleep(100);
     }
     console.log(`+${result.add} / -${result.del}`);
+    let codeInfo = '';
+    if (existsSync(codeInfoFile)) {
+      codeInfo = readFileSync(codeInfoFile, 'utf-8');
+    }
+    codeInfo = `${time('_')}\t${result.add}\t${result.del}\t${repo}\n` + codeInfo;
+    writeFileSync(codeInfoFile, codeInfo);
     return result;
   }
 
@@ -545,5 +557,26 @@ export class GitPlugin extends BasePlugin {
     console.log('version:', require('../package.json').version);
     console.log('install-at:', __dirname);
     console.log('cache-file:', getGlobalCache());
+    if (existsSync(codeInfoFile)) {
+      const codeInfoLines = readFileSync(codeInfoFile, 'utf-8').split('\n').filter(Boolean);
+      const timeInfo = {};
+      const [today] = time('_').split('_');
+      codeInfoLines.forEach(line => {
+        const [time, add, del] = line.split(/\s/);
+        const [day] = time.split('_');
+        if (!timeInfo[day]) {
+          timeInfo[day] = {
+            time: new Date(day),
+            add: 0,
+            del: 0,
+          }
+        }
+        timeInfo[day].add += (+add);
+        timeInfo[day].del += (+del);
+      });
+      const todayInfo = timeInfo[today] || {};
+      console.log('code-info:', codeInfoFile);
+      console.log(`today code info: +${todayInfo.add || 0} / -${todayInfo.del || 0}`);
+    }
   }
 }
