@@ -26,10 +26,13 @@ export class InitPlugin extends BasePlugin {
     const data = await fetch('https://registry.npmmirror.com/make-dev-fast-tpl-list/latest/files/package.json').then(res => res.json());
     const { list } = data;
     const name = await (enquirer as any).input({
-        message: 'Please input dir name',
+        message: 'Please input dir name (use "./" to initialize in the current directory)',
     });
-    const dir = join(this.core.cwd, name);
-    if (await exists(dir)) {
+    let dir = join(this.core.cwd, name);
+    if (name === './') {
+      dir = this.core.cwd;
+    }
+    if (await exists(dir) && name !== './') {
         console.error(`Error: dir ${name} is exists. (${dir})`);
         return;
     }
