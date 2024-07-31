@@ -1,9 +1,12 @@
 import { BasePlugin } from '@midwayjs/command-core';
-import { existsSync, readdirSync, statSync } from 'fs';
+import { existsSync, readdirSync, statSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { getIp, time } from './utils';
 const koa = require('koa');
 const koaStatic = require('koa-static');
+const https = require('https');
+const http = require('http');
+
 export class StaticServerPlugin extends BasePlugin {
   commands = {
     static: {
@@ -20,6 +23,10 @@ export class StaticServerPlugin extends BasePlugin {
   async hanldeLocalServer() {
     const port = this.options.port || 12777;
     const baseDir = this.options.dir || process.cwd();
+    const ssl = this.options.ssl || false;
+    const sslCert = this.options['ssl-cert'] || join(__dirname, 'default-cert.pem');
+    const sslKey = this.options['ssl-key'] || join(__dirname, 'default-key.pem');
+
     const app = new koa();
     app.use((ctx, next) => {
       ctx.set('Access-Control-Allow-Origin', '*');
@@ -37,7 +44,7 @@ export class StaticServerPlugin extends BasePlugin {
       const path = ctx.request.url;
       const absolutePath = join(baseDir, '.' + path);
       if (!absolutePath.endsWith(path)) {
-        ctx.body = 'forbiden path';
+        ctx.body = 'forbidden path';
         return;
       }
       const exists = existsSync(absolutePath);
@@ -59,10 +66,21 @@ export class StaticServerPlugin extends BasePlugin {
       }
       return next();
     });
-    app.listen(port);
-    
-    console.log(`[dev static server] started at http://127.0.0.1:${port}`);
-    console.log(`[dev static server] started at http://${getIp()}:${port}`);
+
+    if (ssl) {
+      const options = {
+        key: readFileSync(sslKey),
+        cert: readFileSync(sslCert)
+      };
+      https.createServer(options, app.callback()).listen(port);
+      console.log(`[dev static server] started at https://127.0.0.1:${port}`);
+      console.log(`[dev static server] started at https://${getIp()}:${port}`);
+    } else {
+      http.createServer(app.callback()).listen(port);
+      console.log(`[dev static server] started at http://127.0.0.1:${port}`);
+      console.log(`[dev static server] started at http://${getIp()}:${port}`);
+    }
+
     return new Promise(resolve => {});
   }
 }

@@ -103,10 +103,12 @@ $ dev init
 $ dev static
 $ dev static --port=7788
 $ dev static --dir=./src
+$ dev static --ssl --ssl-cert=path/to/cert.pem --ssl-key=path/to/key.pem
 ```
 * 默认端口：12777，可以通过 `--port` 参数指定
 * 默认目录：当前执行目录，可以通过 `--dir` 参数指定
 * 此服务默认携带 CORS 跨域支持
+* 支持 `--ssl` 参数来启用 HTTPS，使用 `--ssl-cert` 和 `--ssl-key` 参数来指定 SSL 证书和密钥文件的路径
 
 
 ### where 命令：查找本地的全局命令位置
