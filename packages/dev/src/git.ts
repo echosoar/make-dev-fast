@@ -53,6 +53,11 @@ export class GitPlugin extends BasePlugin {
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
       alias: 'i'
+    },
+    mergeto: {
+      usage: 'dev mergeto <target-branch>',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
     }
   };
 
@@ -65,6 +70,7 @@ export class GitPlugin extends BasePlugin {
     'reset:do': this.handleResetDo.bind(this),
     'release:do': this.handleReleaseDo.bind(this),
     'info:do': this.handleInfoDo.bind(this),
+    'mergeto:do': this.handleMergetoDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -457,7 +463,7 @@ export class GitPlugin extends BasePlugin {
     const curVersionList = formatVersion(curVersion);
     const patch = `v${[curVersionList[0], curVersionList[1], curVersionList[2] + 1].join('.')}`;
     const minor = `v${[curVersionList[0], curVersionList[1] + 1, 0].join('.')}`;
-    const major = `v${[curVersionList[0] + 1, 0, 0].join('.')}`;
+    const major = `v${curVersionList[0] + 1}.0.0`;
     const newVersion = await (enquirer as any).autocomplete({
       name: 'version',
       message: `Please select the tag version(curren: v${curVersionList.join('.')})`,
@@ -577,6 +583,41 @@ export class GitPlugin extends BasePlugin {
       const todayInfo = timeInfo[today] || {};
       console.log('code-info:', codeInfoFile);
       console.log(`today code info: +${todayInfo.add || 0} / -${todayInfo.del || 0}`);
+    }
+  }
+
+  async handleMergetoDo() {
+    const { commands } = this.core.coreOptions;
+    const targetBranch = commands[1];
+
+    if (!targetBranch) {
+      console.error('Error: Target branch is required.');
+      return;
+    }
+
+    await this.getCurrentGitInfo();
+
+    const currentBranch = this.gitInfo.currenBranch;
+
+    if (currentBranch === targetBranch) {
+      console.error('Error: Cannot merge the branch into itself.');
+      return;
+    }
+
+    const st = await exec(`git status`);
+    if (st.indexOf('nothing to commit') === -1) {
+      console.warn('You have uncommitted changes. Please commit or stash them before proceeding.');
+      return;
+    }
+
+    try {
+      await exec(`git checkout ${targetBranch}`);
+      await exec(`git merge ${currentBranch}`);
+      console.log(`Successfully merged ${currentBranch} into ${targetBranch}`);
+    } catch (error) {
+      console.error('Merge conflict detected. Please resolve the conflicts and commit the changes.');
+    } finally {
+      await exec(`git checkout ${currentBranch}`);
     }
   }
 }
