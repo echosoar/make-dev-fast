@@ -8,12 +8,15 @@
     "build": "rm -rf dist && esbuild src/* --outdir=dist --platform=node --format=cjs",
     "test": "jest",
     "coverage": "jest --coverage",
-    "clean": "rm -rf node_modules/ package-lock.json dist"
+    "clean": "rm -rf node_modules/ package-lock.json dist",
+    "release": "standard-version",
+    "postrelease": "git push --follow-tags origin master && npm publish"
   },
   "devDependencies": {
     "@types/node": "^10.17.60",
     "esbuild": "^0.13.8",
-    "typescript": "^4.1.0"
+    "typescript": "^4.1.0",
+    "standard-version": "^9.3.2"
   },
   "dependencies": {
     "@midwayjs/command-core": "^1.0.0",
