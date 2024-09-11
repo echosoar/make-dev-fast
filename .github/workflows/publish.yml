@@ -16,7 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./packages/dev
+        working-directory: /home/runner/work/make-dev-fast/make-dev-fast//packages/dev
+
 
     steps:
       - name: Checkout repository
