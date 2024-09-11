@@ -612,12 +612,20 @@ export class GitPlugin extends BasePlugin {
 
     try {
       await exec(`git checkout ${targetBranch}`);
-      await exec(`git merge ${currentBranch}`);
-      console.log(`Successfully merged ${currentBranch} into ${targetBranch}`);
+      console.log('1. Auto switch to target branch:', targetBranch);
+
+      await exec(`git pull origin ${targetBranch}`);
+      console.log(`2. Successfully pulled ${targetBranch}`);
+
+      await exec(`git merge origin ${currentBranch}`);
+      console.log(`3. Successfully merged ${currentBranch} into ${targetBranch}`);
+
+      await this.handlePushDo();
+
+      await exec(`git checkout ${currentBranch}`);
+      console.log('4. Switch back to the original branch:', currentBranch);
     } catch (error) {
       console.error('Merge conflict detected. Please resolve the conflicts and commit the changes.');
-    } finally {
-      await exec(`git checkout ${currentBranch}`);
     }
   }
 }
