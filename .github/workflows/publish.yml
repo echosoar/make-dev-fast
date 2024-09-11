@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: packages/dev
+        working-directory: ./packages/dev
 
     steps:
       - name: Checkout repository
