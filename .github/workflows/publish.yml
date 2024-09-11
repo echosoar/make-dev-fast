@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: '14'
 
+      - name: Change directory
+        run: cd packages/dev
+
       - name: Install dependencies
         run: npm install
 
