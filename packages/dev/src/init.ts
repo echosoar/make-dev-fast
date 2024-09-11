@@ -23,7 +23,7 @@ export class InitPlugin extends BasePlugin {
 
   async hanldeLocalServer() {
     // get template list
-    const data = await fetch('https://registry.npmmirror.com/make-dev-fast-tpl-list/latest/files/package.json').then(res => res.json());
+    const data = await fetch('https://unpkg.com/make-dev-fast-tpl-list@latest/package.json').then(res => res.json());
     const { list } = data;
     const name = await (enquirer as any).input({
         message: 'Please input dir name (use "./" to initialize in the current directory)',
@@ -32,7 +32,7 @@ export class InitPlugin extends BasePlugin {
     if (name === './') {
       dir = this.core.cwd;
     }
-    if (await exists(dir) && name !== './') {
+    if (await exists(dir) && (name && name !== './')) {
         console.error(`Error: dir ${name} is exists. (${dir})`);
         return;
     }
@@ -53,7 +53,7 @@ export class InitPlugin extends BasePlugin {
         text: 'Download template...',
     });
     spin.start();
-    const templateVersion = (await fetch(`https://registry.npmmirror.com/${templateInfo.target}/latest/files/package.json`).then(res => res.json())).version;
+    const templateVersion = (await fetch(`https://unpkg.com/${templateInfo.target}@latest/package.json`).then(res => res.json())).version;
     // 下载模板
     const file = join(tmpdir(), `mdf_tpl_${Date.now()}.tgz`);
     const writeFileStream = createWriteStream(file);
