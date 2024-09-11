@@ -14,6 +14,9 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/dev
 
     steps:
       - name: Checkout repository
@@ -23,9 +26,6 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: '14'
-
-      - name: Change directory
-        run: cd packages/dev
 
       - name: Install dependencies
         run: npm install
