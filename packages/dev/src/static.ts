@@ -24,8 +24,8 @@ export class StaticServerPlugin extends BasePlugin {
     const port = this.options.port || 12777;
     const baseDir = this.options.dir || process.cwd();
     const ssl = this.options.ssl || false;
-    const sslCert = this.options['ssl-cert'] || join(__dirname, 'default-cert.pem');
-    const sslKey = this.options['ssl-key'] || join(__dirname, 'default-key.pem');
+    const sslCert = this.options['ssl-cert'] || join(__dirname, '../static/default-cert.pem');
+    const sslKey = this.options['ssl-key'] || join(__dirname, '../static/default-key.pem');
 
     const app = new koa();
     app.use((ctx, next) => {
@@ -63,6 +63,16 @@ export class StaticServerPlugin extends BasePlugin {
           ].join('<br />');
           return;
         }
+      } else if (this.options.spa) {
+        const homePage = join(baseDir, 'index.html');
+        if (existsSync(homePage)) {
+          ctx.type = 'html';
+          ctx.body = readFileSync(homePage);
+          return;
+        }
+        ctx.status = 404;
+        ctx.body = 'Index page not found';
+        return;
       }
       return next();
     });
