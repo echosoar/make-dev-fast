@@ -113,14 +113,26 @@ $ dev init
 ### static 命令：在某个目录启动本地开发 server
 ```shell
 $ dev static
-$ dev static --port=7788
+$ dev static --port=12777
 $ dev static --dir=./src
+$ dev static --ssl
 $ dev static --ssl --ssl-cert=path/to/cert.pem --ssl-key=path/to/key.pem
 ```
 * 默认端口：12777，可以通过 `--port` 参数指定
 * 默认目录：当前执行目录，可以通过 `--dir` 参数指定
 * 此服务默认携带 CORS 跨域支持
-* 支持 `--ssl` 参数来启用 HTTPS，使用 `--ssl-cert` 和 `--ssl-key` 参数来指定 SSL 证书和密钥文件的路径
+* 支持 `--ssl` 参数来启用 HTTPS，提供默认的 `127.0.0.1` 证书，也可以使用 `--ssl-cert` 和 `--ssl-key` 参数来指定 SSL 证书和密钥文件的路径
+
+
+### proxy 命令：代理请求
+```shell
+# 将 12778 端口的 https 请求代理到 12777 端口的 http server
+$ dev proxy --port=12778 --target=12777 --ssl
+
+# 将 12778 端口的 http 请求代理到 https://www.baidu.com
+$ dev proxy --port=12778 --target=https://www.baidu.com
+
+```
 
 
 ### where 命令：查找本地的全局命令位置

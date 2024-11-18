@@ -58,7 +58,7 @@ export class StaticServerPlugin extends BasePlugin {
             '<hr />',
             ...dirList.map(file => {
               const filePath = join(path, file)
-              return `<a href="${filePath.replace(/^\//, '')}">${  filePath }</a>`
+              return `<a href="${filePath}">${  filePath }</a>`
             })
           ].join('<br />');
           return;
