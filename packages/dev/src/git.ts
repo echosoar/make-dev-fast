@@ -352,6 +352,26 @@ export class GitPlugin extends BasePlugin {
             return { name: branch, message: branch };
           }),
         ],
+        suggest: (input) => {
+          const matched = [];
+          const like = [];
+          const formatedInput = input.toLowerCase().trim();
+          if (!formatedInput) {
+            return [];
+          }
+          const inputParts = formatedInput.split(/\s+/);
+          allBrancheList.forEach(branch => {
+            const formatedBranch = branch.toLowerCase().trim();
+            if (formatedBranch.includes(formatedInput)) {
+              matched.push(branch);
+            } else if (!inputParts.find(part => !formatedBranch.includes(part))) {
+              like.push(branch);
+            }
+          });
+          return matched.concat(like).slice(0, 10).map(branch => {
+            return { name: branch, message: branch };
+          });
+        }
       });
 
       if (newBranchName === newBranchType) {
