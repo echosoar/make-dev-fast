@@ -25,9 +25,12 @@ export class InitPlugin extends BasePlugin {
     // get template list
     const data = await fetch('https://unpkg.com/make-dev-fast-tpl-list@latest/package.json').then(res => res.json());
     const { list } = data;
-    const name = await (enquirer as any).input({
+    let name = this.core.coreOptions.commands[1];
+    if (!name) {
+      name = await (enquirer as any).input({
         message: 'Please input dir name (use "./" to initialize in the current directory)',
-    });
+      });
+    }
     let dir = join(this.core.cwd, name);
     if (name === './') {
       dir = this.core.cwd;
