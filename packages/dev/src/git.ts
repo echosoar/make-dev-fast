@@ -345,14 +345,13 @@ export class GitPlugin extends BasePlugin {
       const newBranchName = await (enquirer as any).autocomplete({
         name: 'selectBranch',
         message: 'Please select branch',
-        limit: 10,
         choices: [
           { name: newBranchType, message: newBranchType },
           ...allBrancheList.map(branch => {
             return { name: branch, message: branch };
           }),
         ],
-        suggest: (input) => {
+        suggest: (input, choices) => {
           const matched = [];
           const like = [];
           const formatedInput = input.toLowerCase().trim();
@@ -360,19 +359,23 @@ export class GitPlugin extends BasePlugin {
             return [];
           }
           const inputParts = formatedInput.split(/\s+/);
-          allBrancheList.forEach(branch => {
+          choices.forEach(item => {
+            const branch = item.name;
             const formatedBranch = branch.toLowerCase().trim();
             if (formatedBranch.includes(formatedInput)) {
-              matched.push(branch);
+              matched.push(item);
             } else if (!inputParts.find(part => !formatedBranch.includes(part))) {
-              like.push(branch);
+              like.push(item);
             }
           });
-          return matched.concat(like).slice(0, 10).map(branch => {
-            return { name: branch, message: branch };
-          });
+          return matched.concat(like).slice(0, 10);
         }
       });
+
+      if (!newBranchName) {
+        console.log('No branch selected, exit');
+        return;
+      }
 
       if (newBranchName === newBranchType) {
         newBranch = await (enquirer as any).input({
