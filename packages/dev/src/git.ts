@@ -318,7 +318,13 @@ export class GitPlugin extends BasePlugin {
     spin.start();
     await exec(`git push ${this.gitInfo.remoteName} ${this.gitInfo.currenBranch}`);
     spin.stop();
+    
+    // Get current commit info after push
+    await this.getCurrentGitInfo();
+    const completionTime = time();
     console.log('Push success');
+    console.log(`Completion time: ${completionTime}`);
+    console.log(`Commit hash: ${this.gitInfo.lastCommitId}`);
   }
 
   async handleStatusDo() {
@@ -647,6 +653,13 @@ export class GitPlugin extends BasePlugin {
 
       await exec(`git checkout ${currentBranch}`);
       console.log('4. Switch back to the original branch:', currentBranch);
+      
+      // Get current commit info after merge operation
+      await this.getCurrentGitInfo();
+      const completionTime = time();
+      console.log(`Merge operation completed`);
+      console.log(`Completion time: ${completionTime}`);
+      console.log(`Commit hash: ${this.gitInfo.lastCommitId}`);
     } catch (error) {
       console.error('Merge conflict detected. Please resolve the conflicts and commit the changes.');
     }
