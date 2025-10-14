@@ -132,7 +132,19 @@ $ dev proxy --port=12778 --target=12777 --ssl
 # 将 12778 端口的 http 请求代理到 https://www.baidu.com
 $ dev proxy --port=12778 --target=https://www.baidu.com
 
+# 使用 HTTP/2 协议启动代理服务器
+$ dev proxy --port=12778 --target=12777 --http2
+
 ```
+
+**参数说明：**
+* `--port`: 指定代理服务器监听端口，默认 12778
+* `--target`: 指定后端目标地址，可以是完整 URL 或端口号
+* `--ssl`: 启用 HTTPS（HTTP/1.1）
+* `--http2`: 启用 HTTP/2 协议（自动启用 HTTPS，支持 HTTP/1.1 回退）
+* `--ssl-cert`: 指定 SSL 证书文件路径（可选）
+* `--ssl-key`: 指定 SSL 密钥文件路径（可选）
+
 
 
 ### where 命令：查找本地的全局命令位置
