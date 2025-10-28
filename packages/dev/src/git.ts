@@ -317,7 +317,8 @@ export class GitPlugin extends BasePlugin {
 
   async handlePushDo() {
     // Check if the repository is locked
-    const isLocked = await getCache('lock', 'status');
+    const repoKey = this.core.cwd;
+    const isLocked = await getCache('lock', repoKey);
     if (isLocked) {
       console.error('');
       console.error('>> Repository is locked! <<');
@@ -670,16 +671,17 @@ export class GitPlugin extends BasePlugin {
 
   async handleLockDo() {
     const { options } = this.core.coreOptions;
+    const repoKey = this.core.cwd;
     
     // Check if --unlock flag is provided
     if (options.unlock) {
-      setCache('lock', 'status', false);
+      setCache('lock', repoKey, false);
       console.log('');
       console.log('>> Repository unlocked successfully! <<');
       console.log('>> You can now push changes using "dev ps" or "dev push". <<');
       console.log('');
     } else {
-      setCache('lock', 'status', true);
+      setCache('lock', repoKey, true);
       console.log('');
       console.log('>> Repository locked successfully! <<');
       console.log('>> "dev ps" and "dev push" commands are now blocked. <<');
