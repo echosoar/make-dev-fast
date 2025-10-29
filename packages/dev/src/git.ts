@@ -58,6 +58,11 @@ export class GitPlugin extends BasePlugin {
       usage: 'dev mergeto <target-branch>',
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
+    },
+    lock: {
+      usage: 'dev lock',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
     }
   };
 
@@ -71,6 +76,7 @@ export class GitPlugin extends BasePlugin {
     'release:do': this.handleReleaseDo.bind(this),
     'info:do': this.handleInfoDo.bind(this),
     'mergeto:do': this.handleMergetoDo.bind(this),
+    'lock:do': this.handleLockDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -310,6 +316,17 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handlePushDo() {
+    // Check if the repository is locked
+    const repoKey = this.core.cwd;
+    const isLocked = await getCache('lock', repoKey);
+    if (isLocked) {
+      console.error('');
+      console.error('>> Repository is locked! <<');
+      console.error('>> Cannot push changes when the repository is locked. <<');
+      console.error('>> Use "dev lock --unlock" to unlock the repository. <<');
+      console.error('');
+      process.exit(1);
+    }
     
     await this.handleCommitDo();
     const spin = new Spin({
@@ -649,6 +666,27 @@ export class GitPlugin extends BasePlugin {
       console.log('4. Switch back to the original branch:', currentBranch);
     } catch (error) {
       console.error('Merge conflict detected. Please resolve the conflicts and commit the changes.');
+    }
+  }
+
+  async handleLockDo() {
+    const { options } = this.core.coreOptions;
+    const repoKey = this.core.cwd;
+    
+    // Check if --unlock flag is provided
+    if (options.unlock) {
+      setCache('lock', repoKey, false);
+      console.log('');
+      console.log('>> Repository unlocked successfully! <<');
+      console.log('>> You can now push changes using "dev ps" or "dev push". <<');
+      console.log('');
+    } else {
+      setCache('lock', repoKey, true);
+      console.log('');
+      console.log('>> Repository locked successfully! <<');
+      console.log('>> "dev ps" and "dev push" commands are now blocked. <<');
+      console.log('>> Use "dev lock --unlock" to unlock the repository. <<');
+      console.log('');
     }
   }
 }

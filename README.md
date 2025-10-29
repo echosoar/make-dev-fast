@@ -91,6 +91,22 @@ $ dev reset
 $ dev mergeto <target-branch>
 ```
 
+#### lock 命令：锁定/解锁代码提交
+
+用于防止错误提交代码到远程仓库。当执行 `dev lock` 后，将无法使用 `dev ps` 或 `dev push` 命令提交代码，直到使用 `dev lock --unlock` 解锁。
+
+包含如下功能：
++ 锁定提交：执行 `dev lock` 后，阻止 `dev ps` 和 `dev push` 命令的执行，避免错误提交代码。
++ 解锁提交：执行 `dev lock --unlock` 后，恢复正常的代码提交功能。
+
+```shell
+# 锁定，阻止代码提交
+$ dev lock
+
+# 解锁，允许代码提交
+$ dev lock --unlock
+```
+
 ### init 命令：初始化项目
 
 通过 `dev init` 命令，可以快速初始化项目。当你在命令行中执行 `dev init` 时，系统会提示你输入项目目录名称。如果你输入 './'，则项目会在当前目录下初始化。这使得在已有目录中快速开始一个新项目变得非常方便。
