@@ -3,7 +3,7 @@ import fetch from 'node-fetch';
 import * as enquirer from 'enquirer';
 import Spin from 'light-spinner';
 import { join } from 'path';
-import { createWriteStream, existsSync } from 'fs';
+import { createWriteStream, existsSync, readdirSync } from 'fs';
 import { exec, exists } from './utils';
 import { tmpdir } from 'os';
 import { ensureDir, copy } from 'fs-extra';
@@ -20,6 +20,25 @@ export class InitPlugin extends BasePlugin {
   hooks = {
     'init:do': this.hanldeLocalServer.bind(this),
   };
+
+  private async checkAndConfirmOverwrite(dir: string): Promise<boolean> {
+    try {
+      const files = readdirSync(dir).filter(file => !file.startsWith('.git'));
+      if (files.length > 0) {
+        console.warn('');
+        console.warn(`>> Directory ${dir} contains existing files: ${files.slice(0, 3).join(', ')}${files.length > 3 ? '...' : ''} <<`);
+        console.warn('');
+        const confirm = await (enquirer as any).input({
+          message: 'This may overwrite existing files. Continue? (y/N)',
+        });
+        return ['y', 'yes'].includes(confirm.toLowerCase());
+      }
+      return true;
+    } catch (error) {
+      // Directory doesn't exist or can't be read, it's safe to proceed
+      return true;
+    }
+  }
 
   async hanldeLocalServer() {
     // get template list
@@ -39,6 +58,16 @@ export class InitPlugin extends BasePlugin {
         console.error(`Error: dir ${name} is exists. (${dir})`);
         return;
     }
+    
+    // Check for existing files when initializing in current directory
+    if (name === './') {
+      const canProceed = await this.checkAndConfirmOverwrite(dir);
+      if (!canProceed) {
+        console.log('Operation cancelled.');
+        return;
+      }
+    }
+    
     console.log(`project will create to ${dir}`);
     await ensureDir(dir);
     const template = await (enquirer as any).autocomplete({
