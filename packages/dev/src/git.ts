@@ -343,7 +343,27 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handleResetDo() {
-    await exec('git checkout .', { slience: false });
+    console.log('');
+    console.warn('>> Warning: This will reset all changes in the current branch! <<');
+    console.warn('>> - New files will be deleted <<');
+    console.warn('>> - Modified files will be restored <<');
+    console.warn('>> - Deleted files will be restored <<');
+    console.warn('>> - Staged files will be reset <<');
+    console.log('');
+    
+    await this.needConfirm();
+    
+    console.log('Resetting branch...');
+    
+    // Reset staged and modified files
+    await exec('git reset --hard HEAD', { slience: false });
+    
+    // Remove untracked files and directories
+    await exec('git clean -fd', { slience: false });
+    
+    console.log('');
+    console.log('>> Branch reset successfully! <<');
+    console.log('');
   }
 
   async handleCheckoutDo() {
