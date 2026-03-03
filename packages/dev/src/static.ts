@@ -6,6 +6,7 @@ const koa = require('koa');
 const koaStatic = require('koa-static');
 const https = require('https');
 const http = require('http');
+const bodyParser = require('koa-bodyparser');
 
 export class StaticServerPlugin extends BasePlugin {
   commands = {
@@ -26,8 +27,12 @@ export class StaticServerPlugin extends BasePlugin {
     const ssl = this.options.ssl || false;
     const sslCert = this.options['ssl-cert'] || join(__dirname, '../static/default-cert.pem');
     const sslKey = this.options['ssl-key'] || join(__dirname, '../static/default-key.pem');
+    const verbose = this.options.v || this.options.verbose;
 
     const app = new koa();
+    if (verbose) {
+      app.use(bodyParser());
+    }
     app.use((ctx, next) => {
       ctx.set('Access-Control-Allow-Origin', '*');
       ctx.set('Access-Control-Allow-Headers', ctx.request.headers['access-control-request-headers'] || 'Content-Type');
@@ -37,6 +42,11 @@ export class StaticServerPlugin extends BasePlugin {
       }
       const path = ctx.request.url;
       console.log(`- [${ctx.request.method} - ${time()}] ${path}`);
+      if (this.options.v || this.options.verbose) {
+        console.log('  request headers: ', ctx.request.headers);
+        console.log('  request query: ', ctx.request.query);
+        console.log('  request body: ', ctx.request.body);
+      }
       return next();
     });
     app.use(koaStatic(baseDir));
