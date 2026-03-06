@@ -45,7 +45,7 @@ export class StaticServerPlugin extends BasePlugin {
       if (this.options.v || this.options.verbose) {
         console.log('  request headers: ', ctx.request.headers);
         console.log('  request query: ', ctx.request.query);
-        console.log('  request body: ', ctx.request.body);
+        console.log('  request body: ', JSON.stringify(ctx.request.body));
       }
       return next();
     });
