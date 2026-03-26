@@ -4,6 +4,7 @@ import { WherePlugin } from './where';
 import { StaticServerPlugin } from './static';
 import { InitPlugin } from './init';
 import { ProxyPlugin } from './proxy';
+import { CmdPlugin } from './cmd';
 
 export class CLI extends CoreBaseCLI {
     // cli 扩展
@@ -35,6 +36,7 @@ export class CLI extends CoreBaseCLI {
         this.core.addPlugin(WherePlugin);
         this.core.addPlugin(StaticServerPlugin);
         this.core.addPlugin(ProxyPlugin);
+        this.core.addPlugin(CmdPlugin);
     }
   
     async loadDefaultOptions() {
