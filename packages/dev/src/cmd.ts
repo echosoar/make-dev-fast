@@ -1,6 +1,8 @@
 import { BasePlugin } from '@midwayjs/command-core';
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
+import * as enquirer from 'enquirer';
+import { exec } from './utils';
 
 interface CmdItem {
   name: string;
@@ -29,8 +31,8 @@ export class CmdPlugin extends BasePlugin {
       try {
         const pkg = JSON.parse(readFileSync(pkgPath).toString());
         const scripts = pkg.scripts || {};
-        for (const [scriptName, scriptCmd] of Object.entries(scripts)) {
-          cmdList.push({ name: `npm run ${scriptName}`, cmd: scriptCmd as string });
+        for (const [scriptName] of Object.entries(scripts)) {
+          cmdList.push({ name: `${scriptName}`, cmd: `npm run ${scriptName}` as string });
         }
       } catch (e) {
         // ignore parse errors
@@ -90,9 +92,24 @@ export class CmdPlugin extends BasePlugin {
       return;
     }
 
-    for (const item of cmdList) {
-      console.log(`[${item.name}]: ${item.cmd}`);
+    // Use enquirer to select a command
+    const selectedCmd = await (enquirer as any).autocomplete({
+      name: 'command',
+      message: 'Please select a command to run',
+      limit: 10,
+      choices: cmdList.map((item) => {
+        return { name: item.cmd, message: `${item.name}: ${item.cmd}` };
+      }),
+    });
+
+    if (!selectedCmd) {
+      console.log('No command selected, exit');
+      return;
     }
+
+    // Execute the selected command
+    console.log(`Executing: ${selectedCmd}`);
+    await exec(selectedCmd, { slience: false });
   }
 
   parseReadme(content: string): CmdItem[] {
@@ -119,9 +136,10 @@ export class CmdPlugin extends BasePlugin {
         // Collect commands inside the block
         lineIndex++;
         while (lineIndex < lines.length && !lines[lineIndex].trim().startsWith('```')) {
-          const cmd = lines[lineIndex].trim();
-          if (cmd && !cmd.startsWith('#')) {
-            const name = commentName || cmd;
+          const command = lines[lineIndex].trim();
+          if (command && !command.startsWith('#')) {
+            const name = commentName || command;
+            const cmd = command.replace(/^\$\s*/, ''); // Remove leading $ if present
             cmdList.push({ name, cmd });
           }
           lineIndex++;
