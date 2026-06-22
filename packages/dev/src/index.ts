@@ -5,6 +5,7 @@ import { StaticServerPlugin } from './static';
 import { InitPlugin } from './init';
 import { ProxyPlugin } from './proxy';
 import { CmdPlugin } from './cmd';
+import { FindPlugin } from './find';
 
 export class CLI extends CoreBaseCLI {
     // cli 扩展
@@ -37,6 +38,7 @@ export class CLI extends CoreBaseCLI {
         this.core.addPlugin(StaticServerPlugin);
         this.core.addPlugin(ProxyPlugin);
         this.core.addPlugin(CmdPlugin);
+        this.core.addPlugin(FindPlugin);
     }
   
     async loadDefaultOptions() {

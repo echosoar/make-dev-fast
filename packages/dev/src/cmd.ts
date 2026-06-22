@@ -1,8 +1,8 @@
 import { BasePlugin } from '@midwayjs/command-core';
 import { existsSync, readFileSync, readdirSync, statSync } from 'fs';
 import { join } from 'path';
+import { spawn } from 'child_process';
 import * as enquirer from 'enquirer';
-import { exec } from './utils';
 
 interface CmdItem {
   name: string;
@@ -15,10 +15,15 @@ export class CmdPlugin extends BasePlugin {
       usage: 'dev cmd',
       lifecycleEvents: ['do'],
     },
+    run: {
+      usage: 'dev run',
+      lifecycleEvents: ['do'],
+    },
   };
 
   hooks = {
     'cmd:do': this.handleCmd.bind(this),
+    'run:do': this.handleCmd.bind(this),
   };
 
   async handleCmd() {
@@ -92,12 +97,23 @@ export class CmdPlugin extends BasePlugin {
       return;
     }
 
+    // Deduplicate by command string: enquirer requires unique choice names,
+    // and different sources (package.json / README) can produce the same command.
+    const seen = new Set<string>();
+    const uniqueCmdList = cmdList.filter((item) => {
+      if (seen.has(item.cmd)) {
+        return false;
+      }
+      seen.add(item.cmd);
+      return true;
+    });
+
     // Use enquirer to select a command
     const selectedCmd = await (enquirer as any).autocomplete({
       name: 'command',
       message: 'Please select a command to run',
       limit: 10,
-      choices: cmdList.map((item) => {
+      choices: uniqueCmdList.map((item) => {
         return { name: item.cmd, message: `${item.name}: ${item.cmd}` };
       }),
     });
@@ -109,7 +125,31 @@ export class CmdPlugin extends BasePlugin {
 
     // Execute the selected command
     console.log(`Executing: ${selectedCmd}`);
-    await exec(selectedCmd, { slience: false });
+    await this.runCommand(selectedCmd);
+  }
+
+  // Run the selected command interactively in the user's terminal.
+  // We use spawn with stdio 'inherit' instead of the buffered child_process.exec
+  // helper so that long-running commands (dev servers, watchers, builds with a
+  // lot of output) and interactive commands work correctly and stream output live.
+  private runCommand(cmd: string): Promise<void> {
+    return new Promise((resolve) => {
+      const child = spawn(cmd, {
+        stdio: 'inherit',
+        shell: true,
+        cwd: process.cwd(),
+      });
+      child.on('error', (err) => {
+        console.error(`Failed to run command: ${err.message}`);
+        resolve();
+      });
+      child.on('close', (code) => {
+        if (code && code !== 0) {
+          console.log(`Command exited with code ${code}`);
+        }
+        resolve();
+      });
+    });
   }
 
   parseReadme(content: string): CmdItem[] {
