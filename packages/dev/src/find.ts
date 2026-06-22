@@ -13,6 +13,90 @@ const DEFAULT_CONTENT_LIMIT = 50;
 const DEFAULT_NAME_LIMIT = 50;
 // number of surrounding characters to keep around a match
 const CONTEXT_CHARS = 30;
+// ANSI escape codes for highlighting the matched keyword
+const HIGHLIGHT_START = '\x1b[1;31m';
+const HIGHLIGHT_END = '\x1b[0m';
+
+interface MatchInfo {
+  index: number;
+  length: number;
+}
+
+interface Matcher {
+  // whether this matcher is a regex matcher
+  isRegex: boolean;
+  // original keyword as typed by the user
+  raw: string;
+  // test if the text contains a match
+  test(text: string): boolean;
+  // return the first match info, or null if none
+  firstMatch(text: string): MatchInfo | null;
+  // return the text with all matches wrapped in ANSI highlight codes
+  highlight(text: string): string;
+}
+
+function highlightLiteral(text: string, keyword: string): string {
+  if (!keyword) {
+    return text;
+  }
+  return text.split(keyword).join(HIGHLIGHT_START + keyword + HIGHLIGHT_END);
+}
+
+// build a matcher from the user-provided keyword.
+// when the keyword is wrapped in forward slashes (e.g. /foo\d+/),
+// the inner part is treated as a regular expression.
+function createMatcher(keyword: string): Matcher {
+  const isRegex = keyword.length >= 2 && keyword.startsWith('/') && keyword.endsWith('/');
+  if (isRegex) {
+    const source = keyword.slice(1, -1);
+    let regex: RegExp;
+    try {
+      regex = new RegExp(source, 'g');
+    } catch (e) {
+      // invalid regex, fall back to literal matching
+      return {
+        isRegex: false,
+        raw: keyword,
+        test: (text) => text.includes(keyword),
+        firstMatch: (text) => {
+          const idx = text.indexOf(keyword);
+          return idx === -1 ? null : { index: idx, length: keyword.length };
+        },
+        highlight: (text) => highlightLiteral(text, keyword),
+      };
+    }
+    return {
+      isRegex: true,
+      raw: keyword,
+      test: (text) => {
+        regex.lastIndex = 0;
+        return regex.test(text);
+      },
+      firstMatch: (text) => {
+        regex.lastIndex = 0;
+        const m = regex.exec(text);
+        if (!m) {
+          return null;
+        }
+        return { index: m.index, length: m[0].length };
+      },
+      highlight: (text) => {
+        regex.lastIndex = 0;
+        return text.replace(regex, (s) => HIGHLIGHT_START + s + HIGHLIGHT_END);
+      },
+    };
+  }
+  return {
+    isRegex: false,
+    raw: keyword,
+    test: (text) => text.includes(keyword),
+    firstMatch: (text) => {
+      const idx = text.indexOf(keyword);
+      return idx === -1 ? null : { index: idx, length: keyword.length };
+    },
+    highlight: (text) => highlightLiteral(text, keyword),
+  };
+}
 
 export class FindPlugin extends BasePlugin {
   commands = {
@@ -33,11 +117,13 @@ export class FindPlugin extends BasePlugin {
   private contentTotal = 0;
   private nameTotal = 0;
   private stopped = false;
+  private matcher: Matcher | null = null;
 
   async handleFind() {
     const keyword: string = this.core.coreOptions.commands[1];
     if (!keyword) {
       console.log('Usage: dev find <keyword>');
+      console.log('  /pattern/   match by regular expression (wrapped in forward slashes)');
       console.log('  --limit <n>  limit the number of matches per type (and stop searching once reached)');
       console.log('  --all        also search ignored dirs/files (node_modules and dot-prefixed)');
       return;
@@ -57,24 +143,25 @@ export class FindPlugin extends BasePlugin {
     this.contentTotal = 0;
     this.nameTotal = 0;
     this.stopped = false;
+    this.matcher = createMatcher(keyword);
 
-    this.walk(cwd, cwd, keyword, all, hasLimit, contentLimit, nameLimit);
+    this.walk(cwd, cwd, all, hasLimit, contentLimit, nameLimit);
 
-    this.printResult(keyword, contentLimit, nameLimit, hasLimit);
+    this.printResult(contentLimit, nameLimit, hasLimit);
   }
 
   private walk(
     dir: string,
     cwd: string,
-    keyword: string,
     all: boolean,
     hasLimit: boolean,
     contentLimit: number,
     nameLimit: number,
   ) {
-    if (this.stopped) {
+    if (this.stopped || !this.matcher) {
       return;
     }
+    const matcher = this.matcher;
     let entries: string[];
     try {
       entries = readdirSync(dir);
@@ -100,7 +187,7 @@ export class FindPlugin extends BasePlugin {
       }
 
       // match against the file / dir name itself
-      if (name.indexOf(keyword) !== -1) {
+      if (matcher.test(name)) {
         this.nameTotal++;
         if (this.nameMatches.length < nameLimit) {
           this.nameMatches.push(relative(cwd, fullPath) || name);
@@ -109,9 +196,9 @@ export class FindPlugin extends BasePlugin {
       }
 
       if (stat.isDirectory()) {
-        this.walk(fullPath, cwd, keyword, all, hasLimit, contentLimit, nameLimit);
+        this.walk(fullPath, cwd, all, hasLimit, contentLimit, nameLimit);
       } else if (stat.isFile()) {
-        this.searchFileContent(fullPath, cwd, keyword, hasLimit, contentLimit, nameLimit);
+        this.searchFileContent(fullPath, cwd, hasLimit, contentLimit, nameLimit);
       }
     }
   }
@@ -119,14 +206,14 @@ export class FindPlugin extends BasePlugin {
   private searchFileContent(
     fullPath: string,
     cwd: string,
-    keyword: string,
     hasLimit: boolean,
     contentLimit: number,
     nameLimit: number,
   ) {
-    if (this.stopped) {
+    if (this.stopped || !this.matcher) {
       return;
     }
+    const matcher = this.matcher;
     let buffer: Buffer;
     try {
       buffer = readFileSync(fullPath);
@@ -145,8 +232,8 @@ export class FindPlugin extends BasePlugin {
         return;
       }
       const line = lines[i];
-      const idx = line.indexOf(keyword);
-      if (idx === -1) {
+      const match = matcher.firstMatch(line);
+      if (!match) {
         continue;
       }
       this.contentTotal++;
@@ -154,7 +241,7 @@ export class FindPlugin extends BasePlugin {
         this.contentMatches.push({
           file: relPath,
           line: i + 1,
-          content: this.makeSnippet(line, idx, keyword.length),
+          content: this.makeSnippet(line, match.index, match.length),
         });
       }
       this.checkStop(hasLimit, contentLimit, nameLimit);
@@ -185,8 +272,15 @@ export class FindPlugin extends BasePlugin {
     }
   }
 
-  private printResult(keyword: string, contentLimit: number, nameLimit: number, hasLimit: boolean) {
-    console.log(`Search for "${keyword}":`);
+  private printResult(contentLimit: number, nameLimit: number, hasLimit: boolean) {
+    const matcher = this.matcher;
+    if (!matcher) {
+      return;
+    }
+    const label = matcher.isRegex
+      ? `Search for /${matcher.raw.slice(1, -1)}/ (regex):`
+      : `Search for "${matcher.raw}":`;
+    console.log(label);
     console.log('');
 
     // content matches
@@ -195,7 +289,7 @@ export class FindPlugin extends BasePlugin {
       console.log('  (none)');
     } else {
       for (const item of this.contentMatches) {
-        console.log(`  ${item.file}:${item.line}: ${item.content}`);
+        console.log(`  ${item.file}:${item.line}: ${matcher.highlight(item.content)}`);
       }
     }
     console.log('');
@@ -206,7 +300,7 @@ export class FindPlugin extends BasePlugin {
       console.log('  (none)');
     } else {
       for (const file of this.nameMatches) {
-        console.log(`  ${file}`);
+        console.log(`  ${matcher.highlight(file)}`);
       }
     }
     console.log('');
