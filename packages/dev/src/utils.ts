@@ -89,9 +89,9 @@ export const exists = async file => {
   }
 }
 
-export const time = (sep = ' ') => {
+export const time = (sep = ' ', dateSep = '/') => {
   const date = new Date();
-  return `${padZero(date.getFullYear())}/${padZero(date.getMonth() + 1)}/${padZero(date.getDate())}${sep}${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}`;
+  return `${padZero(date.getFullYear())}${dateSep}${padZero(date.getMonth() + 1)}${dateSep}${padZero(date.getDate())}${sep}${padZero(date.getHours())}:${padZero(date.getMinutes())}:${padZero(date.getSeconds())}`;
 }
 
 const padZero = (num: any, len = 2) => {
