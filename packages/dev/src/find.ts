@@ -151,54 +151,56 @@ export class FindPlugin extends BasePlugin {
   }
 
   private walk(
-    dir: string,
+    root: string,
     cwd: string,
     all: boolean,
     hasLimit: boolean,
     contentLimit: number,
     nameLimit: number,
   ) {
-    if (this.stopped || !this.matcher) {
-      return;
-    }
-    const matcher = this.matcher;
-    let entries: string[];
-    try {
-      entries = readdirSync(dir);
-    } catch (e) {
-      return;
-    }
-
-    for (const name of entries) {
-      if (this.stopped) {
-        return;
-      }
-      // default ignore: node_modules and dot-prefixed files/dirs
-      if (!all && (name === 'node_modules' || name.startsWith('.'))) {
-        continue;
-      }
-
-      const fullPath = join(dir, name);
-      let stat;
+    const queue: string[] = [root];
+    while (queue.length > 0 && !this.stopped) {
+      const dir = queue.shift();
+      let entries: string[];
       try {
-        stat = statSync(fullPath);
+        entries = readdirSync(dir);
       } catch (e) {
         continue;
       }
 
-      // match against the file / dir name itself
-      if (matcher.test(name)) {
-        this.nameTotal++;
-        if (this.nameMatches.length < nameLimit) {
-          this.nameMatches.push(relative(cwd, fullPath) || name);
+      for (const name of entries) {
+        if (this.stopped || !this.matcher) {
+          return;
         }
-        this.checkStop(hasLimit, contentLimit, nameLimit);
-      }
+        const matcher = this.matcher;
+        // default ignore: node_modules and dot-prefixed files/dirs
+        if (!all && (name === 'node_modules' || name.startsWith('.'))) {
+          continue;
+        }
 
-      if (stat.isDirectory()) {
-        this.walk(fullPath, cwd, all, hasLimit, contentLimit, nameLimit);
-      } else if (stat.isFile()) {
-        this.searchFileContent(fullPath, cwd, hasLimit, contentLimit, nameLimit);
+        const fullPath = join(dir, name);
+        let stat;
+        try {
+          stat = statSync(fullPath);
+        } catch (e) {
+          continue;
+        }
+
+        // match against the file / dir name itself
+        if (matcher.test(name)) {
+          this.nameTotal++;
+          if (this.nameMatches.length < nameLimit) {
+            this.nameMatches.push(relative(cwd, fullPath) || name);
+          }
+          this.checkStop(hasLimit, contentLimit, nameLimit);
+        }
+
+        if (stat.isDirectory()) {
+          // defer sub-directories to the next level
+          queue.push(fullPath);
+        } else if (stat.isFile()) {
+          this.searchFileContent(fullPath, cwd, hasLimit, contentLimit, nameLimit);
+        }
       }
     }
   }

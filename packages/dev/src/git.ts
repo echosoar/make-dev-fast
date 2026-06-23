@@ -351,7 +351,9 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handleResetDo() {
-    await exec('git checkout .', { slience: false });
+    try { await exec('git reset --hard HEAD', { slience: false }); } catch {}
+    try { await exec('git checkout -- .', { slience: false }); } catch {}
+    try { await exec('git clean -fd', { slience: false }); } catch {}
   }
 
   async handleCheckoutDo() {
