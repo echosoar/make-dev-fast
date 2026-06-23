@@ -26,6 +26,12 @@ export class GitPlugin extends BasePlugin {
       lifecycleEvents: [ 'do' ],
       alias: 'ps'
     },
+    commit: {
+      usage: 'dev ci/commit',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
+      alias: 'ci'
+    },
     status: {
       usage: 'dev st/status',
       lifecycleEvents: [ 'do' ],
@@ -70,6 +76,7 @@ export class GitPlugin extends BasePlugin {
     'git:do': this.handleGitDo.bind(this),
     'clone:do': this.handleCloneDo.bind(this),
     'push:do': this.handlePushDo.bind(this),
+    'commit:do': this.handleCommitDo.bind(this),
     'status:do': this.handleStatusDo.bind(this),
     'checkout:do': this.handleCheckoutDo.bind(this),
     'reset:do': this.handleResetDo.bind(this),
@@ -313,6 +320,7 @@ export class GitPlugin extends BasePlugin {
       const lines = await exec(`git log ${preCommitId}..${currentCommitId} --numstat`);
       await this.report(lines);
     } catch {}
+    console.log(`commit at ${time(' ', '-')}`);
   }
 
   async handlePushDo() {
