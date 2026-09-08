@@ -69,6 +69,11 @@ export class GitPlugin extends BasePlugin {
       usage: 'dev lock',
       lifecycleEvents: [ 'do' ],
       passingCommand: true,
+    },
+    pull: {
+      usage: 'dev pl/pull',
+      lifecycleEvents: [ 'do' ],
+      alias: 'pl'
     }
   };
 
@@ -84,6 +89,7 @@ export class GitPlugin extends BasePlugin {
     'info:do': this.handleInfoDo.bind(this),
     'mergeto:do': this.handleMergetoDo.bind(this),
     'lock:do': this.handleLockDo.bind(this),
+    'pull:do': this.handlePullDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -324,10 +330,9 @@ export class GitPlugin extends BasePlugin {
   }
 
   async handlePushDo() {
-    // Check if the repository is locked
-    const repoKey = this.core.cwd;
-    const isLocked = await getCache('lock', repoKey);
-    if (isLocked) {
+    // Check if the repository's remote url is locked
+    await this.getCurrentGitInfo();
+    if (this.isLockedUrl(this.gitInfo.remoteGitUrl)) {
       console.error('');
       console.error('>> Repository is locked! <<');
       console.error('>> Cannot push changes when the repository is locked. <<');
@@ -335,7 +340,7 @@ export class GitPlugin extends BasePlugin {
       console.error('');
       process.exit(1);
     }
-    
+
     await this.handleCommitDo();
     const spin = new Spin({
       text: 'Pushing...',
@@ -679,24 +684,91 @@ export class GitPlugin extends BasePlugin {
     }
   }
 
+  // Prefix added to the git remote url to "lock" a repository.
+  private lockPrefix = 'locked:';
+
+  private isLockedUrl(url: string): boolean {
+    return !!url && url.startsWith(this.lockPrefix);
+  }
+
+  private stripLockPrefix(url: string): string {
+    return this.isLockedUrl(url) ? url.slice(this.lockPrefix.length) : url;
+  }
+
   async handleLockDo() {
     const { options } = this.core.coreOptions;
-    const repoKey = this.core.cwd;
-    
+    await this.getCurrentGitInfo();
+    const { remoteName, remoteGitUrl } = this.gitInfo;
+
+    if (!remoteName) {
+      console.error('[Dev] This is not a git repository');
+      process.exit(1);
+    }
+
     // Check if --unlock flag is provided
     if (options.unlock) {
-      setCache('lock', repoKey, false);
+      if (!this.isLockedUrl(remoteGitUrl)) {
+        console.log('');
+        console.log('>> Repository is already unlocked! <<');
+        console.log('');
+        return;
+      }
+      const originalUrl = this.stripLockPrefix(remoteGitUrl);
+      await exec(`git remote set-url ${remoteName} ${originalUrl}`);
       console.log('');
       console.log('>> Repository unlocked successfully! <<');
-      console.log('>> You can now push changes using "dev ps" or "dev push". <<');
+      console.log('>> You can now push/pull changes using "dev ps"/"dev pull". <<');
       console.log('');
     } else {
-      setCache('lock', repoKey, true);
+      if (this.isLockedUrl(remoteGitUrl)) {
+        console.log('');
+        console.log('>> Repository is already locked! <<');
+        console.log('');
+        return;
+      }
+      const lockedUrl = `${this.lockPrefix}${remoteGitUrl}`;
+      await exec(`git remote set-url ${remoteName} ${lockedUrl}`);
       console.log('');
       console.log('>> Repository locked successfully! <<');
       console.log('>> "dev ps" and "dev push" commands are now blocked. <<');
       console.log('>> Use "dev lock --unlock" to unlock the repository. <<');
       console.log('');
+    }
+  }
+
+  async handlePullDo() {
+    await this.getCurrentGitInfo();
+    const { remoteName, remoteGitUrl, currenBranch } = this.gitInfo;
+
+    if (!remoteName) {
+      console.error('[Dev] This is not a git repository');
+      process.exit(1);
+    }
+
+    const wasLocked = this.isLockedUrl(remoteGitUrl);
+    const originalUrl = this.stripLockPrefix(remoteGitUrl);
+
+    // Restore the original url before pulling if it was locked
+    if (wasLocked) {
+      await exec(`git remote set-url ${remoteName} ${originalUrl}`);
+    }
+
+    try {
+      const spin = new Spin({
+        text: 'Pulling...',
+      });
+      spin.start();
+      try {
+        await exec(`git pull ${remoteName} ${currenBranch}`, { slience: false });
+      } finally {
+        spin.stop();
+      }
+      console.log('Pull success');
+    } finally {
+      // Re-lock after the pull completes (even if it failed)
+      if (wasLocked) {
+        await exec(`git remote set-url ${remoteName} ${this.lockPrefix}${originalUrl}`);
+      }
     }
   }
 }
