@@ -1,7 +1,18 @@
 #!/usr/bin/env node
 'use strict';
 const minimist = require('minimist');
-const argv = minimist(process.argv.slice(2));
+const rawArgs = process.argv.slice(2);
+const argv = minimist(rawArgs);
+const fetchCommandIndex = argv._[0] === 'fetch' ? rawArgs.indexOf('fetch') : -1;
+if (fetchCommandIndex !== -1) {
+    argv.fetchArgs = rawArgs.slice(fetchCommandIndex + 1);
+    if (argv.fetchArgs.includes('-h')) {
+        delete argv.h;
+    }
+    if (argv.fetchArgs.includes('--help')) {
+        delete argv.help;
+    }
+}
 const { CLI } = require('../dist');
 ;(async () => {
     const cli = new CLI(argv);
