@@ -74,6 +74,11 @@ export class GitPlugin extends BasePlugin {
       usage: 'dev pl/pull',
       lifecycleEvents: [ 'do' ],
       alias: 'pl'
+    },
+    fetch: {
+      usage: 'dev fetch [git-fetch-options...]',
+      lifecycleEvents: [ 'do' ],
+      passingCommand: true,
     }
   };
 
@@ -90,6 +95,7 @@ export class GitPlugin extends BasePlugin {
     'mergeto:do': this.handleMergetoDo.bind(this),
     'lock:do': this.handleLockDo.bind(this),
     'pull:do': this.handlePullDo.bind(this),
+    'fetch:do': this.handleFetchDo.bind(this),
   };
 
   gitInfo: any = {};
@@ -717,7 +723,7 @@ export class GitPlugin extends BasePlugin {
       await exec(`git remote set-url ${remoteName} ${originalUrl}`);
       console.log('');
       console.log('>> Repository unlocked successfully! <<');
-      console.log('>> You can now push/pull changes using "dev ps"/"dev pull". <<');
+      console.log('>> You can now push/pull/fetch changes using "dev ps"/"dev pull"/"dev fetch". <<');
       console.log('');
     } else {
       if (this.isLockedUrl(remoteGitUrl)) {
@@ -730,10 +736,42 @@ export class GitPlugin extends BasePlugin {
       await exec(`git remote set-url ${remoteName} ${lockedUrl}`);
       console.log('');
       console.log('>> Repository locked successfully! <<');
-      console.log('>> "dev ps" and "dev push" commands are now blocked. <<');
+      console.log('>> "dev ps", "dev push", and "dev fetch" commands are now blocked. <<');
       console.log('>> Use "dev lock --unlock" to unlock the repository. <<');
       console.log('');
     }
+  }
+
+  async handleFetchDo() {
+    await this.getCurrentGitInfo();
+    const { remoteName, remoteGitUrl } = this.gitInfo;
+
+    if (!remoteName) {
+      console.error('[Dev] This is not a git repository');
+      process.exit(1);
+    }
+
+    if (this.isLockedUrl(remoteGitUrl)) {
+      console.error('');
+      console.error('>> Repository is locked! <<');
+      console.error('>> Cannot fetch changes when the repository is locked. <<');
+      console.error('>> Use "dev lock --unlock" to unlock the repository. <<');
+      console.error('');
+      process.exit(1);
+    }
+
+    const fetchArgs = Array.isArray(this.options.fetchArgs) ? this.options.fetchArgs : [];
+    const escapedArgs = fetchArgs.map((arg: string) => `'${arg.replace(/'/g, String.fromCharCode(39, 34, 39, 34, 39))}'`);
+    const spin = new Spin({
+      text: 'Fetching...',
+    });
+    spin.start();
+    try {
+      await exec(`git fetch${escapedArgs.length ? ` ${escapedArgs.join(' ')}` : ''}`, { slience: false });
+    } finally {
+      spin.stop();
+    }
+    console.log('Fetch success');
   }
 
   async handlePullDo() {

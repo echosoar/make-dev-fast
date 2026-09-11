@@ -93,10 +93,10 @@ $ dev mergeto <target-branch>
 
 #### lock 命令：锁定/解锁代码提交
 
-用于防止错误提交代码到远程仓库。当执行 `dev lock` 后，会给当前仓库 `origin`（远程）的 url 前面加上 `locked:` 前缀（如果已经有该前缀则不重复添加），此时无法使用 `dev ps` 或 `dev push` 命令提交代码，直到使用 `dev lock --unlock` 解锁（移除 `locked:` 前缀）。
+用于防止错误提交代码到远程仓库。当执行 `dev lock` 后，会给当前仓库 `origin`（远程）的 url 前面加上 `locked:` 前缀（如果已经有该前缀则不重复添加），此时无法使用 `dev ps`、`dev push` 或 `dev fetch` 命令，直到使用 `dev lock --unlock` 解锁（移除 `locked:` 前缀）。
 
 包含如下功能：
-+ 锁定提交：执行 `dev lock` 后，给远程仓库 url 加上 `locked:` 前缀，阻止 `dev ps` 和 `dev push` 命令的执行，避免错误提交代码。
++ 锁定提交：执行 `dev lock` 后，给远程仓库 url 加上 `locked:` 前缀，阻止 `dev ps`、`dev push` 和 `dev fetch` 命令的执行，避免错误提交代码。
 + 解锁提交：执行 `dev lock --unlock` 后，移除远程仓库 url 的 `locked:` 前缀，恢复正常的代码提交功能。
 
 ```shell
@@ -115,6 +115,16 @@ $ dev lock --unlock
 $ dev pull
 # 或
 $ dev pl
+```
+
+#### fetch 命令：获取远程更新
+
+执行当前仓库的 `git fetch`，只更新远程跟踪引用，不会合并代码或修改工作区。`dev fetch` 会原样透传其后的 Git 参数；例如 `dev fetch --all --prune` 等价于 `git fetch --all --prune`。如果当前仓库已锁定（远程 url 带有 `locked:` 前缀），命令会失败；请先使用 `dev lock --unlock` 解锁。
+
+```shell
+$ dev fetch
+$ dev fetch --all --prune
+$ dev fetch origin main
 ```
 
 ### init 命令：初始化项目
