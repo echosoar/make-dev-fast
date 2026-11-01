@@ -191,6 +191,9 @@ $ dev find "xxx" --limit=20
 
 # 同时搜索被忽略的目录/文件（node_modules 和以 . 开头的目录/文件）
 $ dev find "xxx" --all
+
+# 指定文件进行搜索 
+$ dev find "xxx" -f="**/*.ts"
 ```
 
 包含如下功能：

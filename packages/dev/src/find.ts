@@ -1,6 +1,7 @@
 import { BasePlugin } from '@midwayjs/command-core';
 import { readFileSync, readdirSync, statSync } from 'fs';
-import { join, relative } from 'path';
+import { join, relative, resolve } from 'path';
+const globby = require('globby');
 
 interface ContentMatch {
   file: string;
@@ -118,12 +119,15 @@ export class FindPlugin extends BasePlugin {
   private nameTotal = 0;
   private stopped = false;
   private matcher: Matcher | null = null;
+  // when set, only these files (absolute paths) are searched
+  private fileSet: Set<string> | null = null;
 
   async handleFind() {
     const keyword: string = this.core.coreOptions.commands[1];
     if (!keyword) {
       console.log('Usage: dev find <keyword>');
       console.log('  /pattern/   match by regular expression (wrapped in forward slashes)');
+      console.log('  -f=<glob>    only search files matching the glob pattern (e.g. -f=/src/**/*.ts/)');
       console.log('  --limit <n>  limit the number of matches per type (and stop searching once reached)');
       console.log('  --all        also search ignored dirs/files (node_modules and dot-prefixed)');
       return;
@@ -144,6 +148,25 @@ export class FindPlugin extends BasePlugin {
     this.nameTotal = 0;
     this.stopped = false;
     this.matcher = createMatcher(keyword);
+    this.fileSet = null;
+
+    // -f=/glob/ (or --file) restricts the search to files matching the glob
+    let filePattern = this.options.f !== undefined ? this.options.f : this.options.file;
+    if (Array.isArray(filePattern)) {
+      filePattern = filePattern[filePattern.length - 1];
+    }
+    if (typeof filePattern === 'string' && filePattern) {
+      if (filePattern.length >= 2 && filePattern.startsWith('/') && filePattern.endsWith('/')) {
+        filePattern = filePattern.slice(1, -1);
+      }
+      const files: string[] = globby.sync(filePattern, {
+        cwd,
+        dot: all,
+        onlyFiles: true,
+        ignore: all ? [] : ['**/node_modules/**'],
+      });
+      this.fileSet = new Set(files.map((f) => resolve(cwd, f)));
+    }
 
     this.walk(cwd, cwd, all, hasLimit, contentLimit, nameLimit);
 
@@ -187,7 +210,7 @@ export class FindPlugin extends BasePlugin {
         }
 
         // match against the file / dir name itself
-        if (matcher.test(name)) {
+        if (matcher.test(name) && (!this.fileSet || this.fileSet.has(fullPath))) {
           this.nameTotal++;
           if (this.nameMatches.length < nameLimit) {
             this.nameMatches.push(relative(cwd, fullPath) || name);
@@ -198,7 +221,7 @@ export class FindPlugin extends BasePlugin {
         if (stat.isDirectory()) {
           // defer sub-directories to the next level
           queue.push(fullPath);
-        } else if (stat.isFile()) {
+        } else if (stat.isFile() && (!this.fileSet || this.fileSet.has(fullPath))) {
           this.searchFileContent(fullPath, cwd, hasLimit, contentLimit, nameLimit);
         }
       }
